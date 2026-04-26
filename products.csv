@@ -1,0 +1,6 @@
+product_id,name,category,color,size,material,price,stock,description
+P001,Classic Red Mug,Coffee Mug,Red,350ml,Ceramic,12.99,25,Durable everyday ceramic mug in red
+P002,Classic White Mug,Coffee Mug,White,350ml,Ceramic,11.99,40,Minimal white ceramic mug for coffee or tea
+P003,Classic Blue Mug,Coffee Mug,Blue,350ml,Ceramic,12.99,30,Blue ceramic mug with dishwasher-safe finish
+P004,Large Travel Mug,Travel Mug,Black,500ml,Stainless Steel,18.99,15,Insulated travel mug for hot drinks
+P005,Gift Mug Set,Gift Set,Mixed,3 x 350ml,Ceramic,34.99,10,Three-piece mug gift set with red white and blue mugs

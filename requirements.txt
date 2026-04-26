@@ -1,0 +1,4 @@
+torch
+pyodbc
+nltk
+numpy
