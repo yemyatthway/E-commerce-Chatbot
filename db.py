@@ -2,6 +2,7 @@ import csv
 import hashlib
 import hmac
 import os
+import re
 from datetime import datetime
 import pyodbc
 
@@ -10,6 +11,8 @@ DEFAULT_DRIVER = "ODBC Driver 18 for SQL Server"
 DEFAULT_ADMIN_USERNAME = "admin"
 DEFAULT_ADMIN_PASSWORD = "admin123"
 DEFAULT_ADMIN_ROLE = "admin"
+ORDER_NUMBER_PREFIX = "O_N"
+ORDER_NUMBER_DIGITS = 3
 
 
 def _normalize_trust_cert(conn_str):
@@ -447,8 +450,36 @@ def delete_order(order_number):
         return deleted_count > 0
 
 
+def generate_order_number():
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        return _generate_order_number(cursor)
+
+
+def _generate_order_number(cursor):
+    pattern = f"{ORDER_NUMBER_PREFIX}%"
+    regex = re.compile(rf"^{re.escape(ORDER_NUMBER_PREFIX)}(\d+)$")
+
+    cursor.execute(
+        """
+        SELECT order_number
+        FROM dbo.orders
+        WHERE order_number LIKE ?;
+        """,
+        pattern,
+    )
+
+    highest_number = 0
+    for row in cursor.fetchall():
+        match = regex.match(row.order_number)
+        if match:
+            highest_number = max(highest_number, int(match.group(1)))
+
+    next_number = highest_number + 1
+    return f"{ORDER_NUMBER_PREFIX}{next_number:0{ORDER_NUMBER_DIGITS}d}"
+
+
 def create_order(
-    order_number,
     customer_email,
     customer_address,
     status,
@@ -460,10 +491,12 @@ def create_order(
     quantity=1,
     unit_price=None,
     total_price=None,
+    order_number=None,
 ):
     parsed_date = _parse_order_date(expected_delivery_date)
     with get_connection() as conn:
         cursor = conn.cursor()
+        order_number = order_number or _generate_order_number(cursor)
         cursor.execute(
             "SELECT 1 FROM dbo.orders WHERE order_number = ?;",
             order_number,
@@ -504,4 +537,4 @@ def create_order(
             total_price,
         )
         conn.commit()
-        return True, "Order created."
+        return True, f"Order created. Order number: {order_number}"

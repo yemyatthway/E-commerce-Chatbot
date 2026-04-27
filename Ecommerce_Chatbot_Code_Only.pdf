@@ -1,0 +1,3032 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R 23 0 R 25 0 R 27 0 R 29 0 R 31 0 R 33 0 R 35 0 R 37 0 R 39 0 R 41 0 R 43 0 R 45 0 R 47 0 R 49 0 R 51 0 R 53 0 R 55 0 R 57 0 R 59 0 R 61 0 R 63 0 R 65 0 R] /Count 31 >>
+endobj
+3 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+4 0 obj
+<< /Length 3420 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(==========================================================================================) Tj T*
+(chatbot_engine.py) Tj T*
+(==========================================================================================) Tj T*
+(import json) Tj T*
+(import random) Tj T*
+() Tj T*
+(import torch) Tj T*
+() Tj T*
+(from model import NeuralNet) Tj T*
+(from nltk_utils import bag_of_words, tokenize) Tj T*
+() Tj T*
+() Tj T*
+(CONFIDENCE_THRESHOLD = 0.75) Tj T*
+(PRODUCT_QUESTION_TAGS = {"items", "product_availability", "sizes", "material"}) Tj T*
+() Tj T*
+() Tj T*
+(def get_device\(\):) Tj T*
+(    return torch.device\("cuda" if torch.cuda.is_available\(\) else "cpu"\)) Tj T*
+() Tj T*
+() Tj T*
+(def load_intents\(file_path="intents.json"\):) Tj T*
+(    with open\(file_path, "r", encoding="utf-8"\) as file:) Tj T*
+(        return json.load\(file\)) Tj T*
+() Tj T*
+() Tj T*
+(def is_cancel_order_request\(user_input\):) Tj T*
+(    normalized = user_input.lower\(\)) Tj T*
+(    cancel_words = {"cancel", "delete", "remove"}) Tj T*
+(    return "order" in normalized and any\(word in normalized for word in cancel_words\)) Tj T*
+() Tj T*
+() Tj T*
+(def is_create_order_request\(user_input\):) Tj T*
+(    normalized = user_input.lower\(\)) Tj T*
+(    create_words = {"create", "place", "make", "add", "buy"}) Tj T*
+(    return any\(word in normalized for word in create_words\) and \() Tj T*
+(        "order" in normalized or "product" in normalized) Tj T*
+(    \)) Tj T*
+() Tj T*
+() Tj T*
+(def is_admin_login_request\(user_input\):) Tj T*
+(    return user_input.lower\(\) in {"admin login", "login as admin", "admin"}) Tj T*
+() Tj T*
+() Tj T*
+(def is_admin_logout_request\(user_input\):) Tj T*
+(    return user_input.lower\(\) in {"admin logout", "logout"}) Tj T*
+() Tj T*
+() Tj T*
+(def is_update_status_request\(user_input\):) Tj T*
+(    normalized = user_input.lower\(\)) Tj T*
+(    status_words = {"status", "location", "shipped", "delivered", "processing"}) Tj T*
+(    update_words = {"update", "change", "set", "mark"}) Tj T*
+(    return \() Tj T*
+(        "order" in normalized) Tj T*
+(        and any\(word in normalized for word in status_words\)) Tj T*
+(        and any\(word in normalized for word in update_words\)) Tj T*
+(    \)) Tj T*
+() Tj T*
+() Tj T*
+(class ChatbotEngine:) Tj T*
+(    def __init__\(self, model, all_words, tags, intents, device=None\):) Tj T*
+(        self.model = model) Tj T*
+(        self.all_words = all_words) Tj T*
+(        self.tags = tags) Tj T*
+(        self.intents = intents) Tj T*
+(        self.device = device or get_device\(\)) Tj T*
+() Tj T*
+(    @classmethod) Tj T*
+(    def from_files\(cls, model_path="data.pth", intents_path="intents.json"\):) Tj T*
+(        device = get_device\(\)) Tj T*
+(        data = torch.load\(model_path, map_location=device\)) Tj T*
+(        model = NeuralNet\() Tj T*
+(            data["input_size"],) Tj T*
+(            data["hidden_size"],) Tj T*
+(            data["output_size"],) Tj T*
+(        \).to\(device\)) Tj T*
+(        model.load_state_dict\(data["model_state"]\)) Tj T*
+(        model.eval\(\)) Tj T*
+(        return cls\() Tj T*
+(            model=model,) Tj T*
+(            all_words=data["all_words"],) Tj T*
+(            tags=data["tags"],) Tj T*
+(            intents=load_intents\(intents_path\),) Tj T*
+(            device=device,) Tj T*
+(        \)) Tj T*
+() Tj T*
+(    def predict\(self, sentence\):) Tj T*
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 4 0 R >>
+endobj
+6 0 obj
+<< /Length 3368 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(        tokens = tokenize\(sentence\)) Tj T*
+(        features = bag_of_words\(tokens, self.all_words\)) Tj T*
+(        features = features.reshape\(1, features.shape[0]\)) Tj T*
+(        features = torch.from_numpy\(features\).to\(self.device\)) Tj T*
+() Tj T*
+(        with torch.no_grad\(\):) Tj T*
+(            output = self.model\(features\)) Tj T*
+(            _, predicted = torch.max\(output, dim=1\)) Tj T*
+(            probs = torch.softmax\(output, dim=1\)) Tj T*
+() Tj T*
+(        tag = self.tags[predicted.item\(\)]) Tj T*
+(        probability = probs[0][predicted.item\(\)].item\(\)) Tj T*
+(        return tag, probability) Tj T*
+() Tj T*
+(    def get_response_text\(self, tag, context=None\):) Tj T*
+(        for intent in self.intents["intents"]:) Tj T*
+(            if tag != intent["tag"]:) Tj T*
+(                continue) Tj T*
+() Tj T*
+(            if context:) Tj T*
+(                for response in intent["responses"]:) Tj T*
+(                    if "{context}" in response:) Tj T*
+(                        return response.format\(context=context\)) Tj T*
+() Tj T*
+(            response = random.choice\(intent["responses"]\)) Tj T*
+(            if "{context}" in response:) Tj T*
+(                return response.format\(context=tag\)) Tj T*
+(            return response) Tj T*
+() Tj T*
+(        return "I do not understand...") Tj T*
+() Tj T*
+(==========================================================================================) Tj T*
+(train.py) Tj T*
+(==========================================================================================) Tj T*
+(import json) Tj T*
+() Tj T*
+(import numpy as np) Tj T*
+(import torch) Tj T*
+(import torch.nn as nn) Tj T*
+(from torch.utils.data import DataLoader, Dataset) Tj T*
+() Tj T*
+(from model import NeuralNet) Tj T*
+(from nltk_utils import bag_of_words, lemmatize, tokenize) Tj T*
+() Tj T*
+() Tj T*
+(def load_data\(filename\):) Tj T*
+(    with open\(filename, 'r'\) as f:) Tj T*
+(        intents = json.load\(f\)) Tj T*
+() Tj T*
+(    all_words = []) Tj T*
+(    tags = []) Tj T*
+(    xy = []) Tj T*
+() Tj T*
+(    for intent in intents['intents']:) Tj T*
+(        tag = intent['tag']) Tj T*
+(        tags.append\(tag\)) Tj T*
+(        for pattern in intent['queries']:) Tj T*
+(            w = tokenize\(pattern\)) Tj T*
+(            all_words.extend\(w\)) Tj T*
+(            xy.append\(\(w, tag\)\)) Tj T*
+() Tj T*
+(    ignore_words = ['?', '.', '!', 'is', 'the', 'are', 'what', 'can']) Tj T*
+(    all_words = [lemmatize\(w\) for w in all_words if w not in ignore_words]) Tj T*
+(    all_words = sorted\(set\(all_words\)\)) Tj T*
+(    tags = sorted\(set\(tags\)\)) Tj T*
+() Tj T*
+(    return all_words, tags, xy) Tj T*
+() Tj T*
+() Tj T*
+(def create_training_data\(all_words, tags, xy\):) Tj T*
+(    X_train = []) Tj T*
+(    y_train = []) Tj T*
+() Tj T*
+(    for pattern_sentence, tag in xy:) Tj T*
+(        bag = bag_of_words\(pattern_sentence, all_words\)) Tj T*
+(        X_train.append\(bag\)) Tj T*
+(        label = tags.index\(tag\)) Tj T*
+(        y_train.append\(label\)) Tj T*
+() Tj T*
+(    return np.array\(X_train\), np.array\(y_train\)) Tj T*
+() Tj T*
+() Tj T*
+(class ChatDataset\(Dataset\):) Tj T*
+(    def __init__\(self, X, y\):) Tj T*
+(        self.x_data = torch.Tensor\(X\).float\(\)) Tj T*
+(        self.y_data = torch.Tensor\(y\).long\(\)) Tj T*
+ET
+endstream
+endobj
+7 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 6 0 R >>
+endobj
+8 0 obj
+<< /Length 3010 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(        self.n_samples = len\(self.x_data\)) Tj T*
+() Tj T*
+(    def __getitem__\(self, index\):) Tj T*
+(        return self.x_data[index], self.y_data[index]) Tj T*
+() Tj T*
+(    def __len__\(self\):) Tj T*
+(        return self.n_samples) Tj T*
+() Tj T*
+() Tj T*
+(def set_hyperparameters\(X_train, tags\):) Tj T*
+(    input_size = len\(X_train[0]\)) Tj T*
+(    hidden_size = 16) Tj T*
+(    output_size = len\(tags\)) Tj T*
+(    num_epochs = 1000) Tj T*
+(    batch_size = 8) Tj T*
+(    learning_rate = 0.001) Tj T*
+() Tj T*
+(    return input_size, hidden_size, output_size, num_epochs, batch_size, learning_rate) Tj T*
+() Tj T*
+() Tj T*
+(def train_model\() Tj T*
+(    dataset,) Tj T*
+(    input_size,) Tj T*
+(    hidden_size,) Tj T*
+(    output_size,) Tj T*
+(    num_epochs,) Tj T*
+(    batch_size,) Tj T*
+(    learning_rate,) Tj T*
+(\):) Tj T*
+(    train_loader = DataLoader\(dataset=dataset, batch_size=batch_size, shuffle=True\)) Tj T*
+(    device = torch.device\('cuda' if torch.cuda.is_available\(\) else 'cpu'\)) Tj T*
+(    model = NeuralNet\(input_size, hidden_size, output_size\).to\(device\)) Tj T*
+(    criterion = nn.CrossEntropyLoss\(\)) Tj T*
+(    optimizer = torch.optim.Adam\(model.parameters\(\), lr=learning_rate\)) Tj T*
+() Tj T*
+(    for epoch in range\(num_epochs\):) Tj T*
+(        for words, labels in train_loader:) Tj T*
+(            words = words.to\(device\)) Tj T*
+(            labels = labels.to\(device\)) Tj T*
+() Tj T*
+(            outputs = model\(words\)) Tj T*
+(            loss = criterion\(outputs, labels\)) Tj T*
+() Tj T*
+(            optimizer.zero_grad\(\)) Tj T*
+(            loss.backward\(\)) Tj T*
+(            optimizer.step\(\)) Tj T*
+() Tj T*
+(        if \(epoch + 1\) % 100 == 0:) Tj T*
+(            print\(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item\(\):.4f}'\)) Tj T*
+() Tj T*
+(    print\(f'Final loss: {loss.item\(\):.4f}'\)) Tj T*
+(    return model) Tj T*
+() Tj T*
+() Tj T*
+(def save_model\() Tj T*
+(    model,) Tj T*
+(    input_size,) Tj T*
+(    hidden_size,) Tj T*
+(    output_size,) Tj T*
+(    all_words,) Tj T*
+(    tags,) Tj T*
+(    filename,) Tj T*
+(\):) Tj T*
+(    data = {) Tj T*
+(        "model_state": model.state_dict\(\),) Tj T*
+(        "input_size": input_size,) Tj T*
+(        "hidden_size": hidden_size,) Tj T*
+(        "output_size": output_size,) Tj T*
+(        "all_words": all_words,) Tj T*
+(        "tags": tags,) Tj T*
+(    }) Tj T*
+(    torch.save\(data, filename\)) Tj T*
+(    print\(f'Training complete. Model saved to {filename}'\)) Tj T*
+() Tj T*
+() Tj T*
+(if __name__ == "__main__":) Tj T*
+(    all_words, tags, xy = load_data\('intents.json'\)) Tj T*
+() Tj T*
+(    print\(f"Number of queries: {len\(xy\)}"\)) Tj T*
+(    print\(f"Number of tags: {len\(tags\)}"\)) Tj T*
+(    print\("\\nUnique lemmatized Words:"\)) Tj T*
+(    print\(" ".join\(all_words\)\)) Tj T*
+() Tj T*
+(    X_train, y_train = create_training_data\(all_words, tags, xy\)) Tj T*
+(    \() Tj T*
+(        input_size,) Tj T*
+ET
+endstream
+endobj
+9 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 8 0 R >>
+endobj
+10 0 obj
+<< /Length 2991 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(        hidden_size,) Tj T*
+(        output_size,) Tj T*
+(        num_epochs,) Tj T*
+(        batch_size,) Tj T*
+(        learning_rate,) Tj T*
+(    \) = set_hyperparameters\(X_train, tags\)) Tj T*
+(    dataset = ChatDataset\(X_train, y_train\)) Tj T*
+(    model = train_model\() Tj T*
+(        dataset,) Tj T*
+(        input_size,) Tj T*
+(        hidden_size,) Tj T*
+(        output_size,) Tj T*
+(        num_epochs,) Tj T*
+(        batch_size,) Tj T*
+(        learning_rate,) Tj T*
+(    \)) Tj T*
+(    save_model\() Tj T*
+(        model,) Tj T*
+(        input_size,) Tj T*
+(        hidden_size,) Tj T*
+(        output_size,) Tj T*
+(        all_words,) Tj T*
+(        tags,) Tj T*
+(        'data.pth',) Tj T*
+(    \)) Tj T*
+() Tj T*
+(==========================================================================================) Tj T*
+(model.py) Tj T*
+(==========================================================================================) Tj T*
+(import torch.nn as nn) Tj T*
+() Tj T*
+() Tj T*
+(class NeuralNet\(nn.Module\):) Tj T*
+(    def __init__\(self, input_size, hidden_size, num_classes\):) Tj T*
+(        super\(NeuralNet, self\).__init__\(\)) Tj T*
+(        self.l1 = nn.Linear\(input_size, hidden_size\)) Tj T*
+(        self.l2 = nn.Linear\(hidden_size, hidden_size\)) Tj T*
+(        self.l3 = nn.Linear\(hidden_size, num_classes\)) Tj T*
+(        self.relu = nn.ReLU\(\)) Tj T*
+() Tj T*
+(    def forward\(self, x\):) Tj T*
+(        out = self.l1\(x\)) Tj T*
+(        out = self.relu\(out\)) Tj T*
+(        out = self.l2\(out\)) Tj T*
+(        out = self.relu\(out\)) Tj T*
+(        out = self.l3\(out\)) Tj T*
+() Tj T*
+(        return out) Tj T*
+() Tj T*
+(==========================================================================================) Tj T*
+(nltk_utils.py) Tj T*
+(==========================================================================================) Tj T*
+(import numpy as np) Tj T*
+(import nltk) Tj T*
+(# nltk.download\('punkt'\)) Tj T*
+(# nltk.download\('wordnet'\)) Tj T*
+(# nltk.download\('omw-1.4'\)) Tj T*
+(from nltk.stem.porter import PorterStemmer) Tj T*
+(from nltk.stem import WordNetLemmatizer) Tj T*
+() Tj T*
+(stemmer = PorterStemmer\(\)) Tj T*
+(lemmatizer = WordNetLemmatizer\(\)) Tj T*
+() Tj T*
+() Tj T*
+(def tokenize\(sentence\):) Tj T*
+(    """) Tj T*
+(    split sentence into array of words/tokens) Tj T*
+(    a token can be a word or punctuation character, or number) Tj T*
+(    """) Tj T*
+(    return nltk.word_tokenize\(sentence\)) Tj T*
+() Tj T*
+() Tj T*
+(def stem\(word\):) Tj T*
+(    """) Tj T*
+(    stemming = find the root form of the word) Tj T*
+(    examples:) Tj T*
+(    words = ["organize", "organizes", "organizing"]) Tj T*
+(    words = [stem\(w\) for w in words]) Tj T*
+(    -> ["organ", "organ", "organ"]) Tj T*
+(    """) Tj T*
+(    return stemmer.stem\(word.lower\(\)\)) Tj T*
+() Tj T*
+() Tj T*
+(def lemmatize\(word\):) Tj T*
+(    """) Tj T*
+(    lemmatization = get base form of the word) Tj T*
+ET
+endstream
+endobj
+11 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 10 0 R >>
+endobj
+12 0 obj
+<< /Length 3238 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(    examples:) Tj T*
+(    words = ["organize", "organizes", "organizing"]) Tj T*
+(    words = [lemmatize\(w\) for w in words]) Tj T*
+(    -> ["organize", "organize", "organizing"]) Tj T*
+(    """) Tj T*
+(    return lemmatizer.lemmatize\(word.lower\(\)\)) Tj T*
+() Tj T*
+() Tj T*
+(def bag_of_words\(tokenized_sentence, words\):) Tj T*
+(    """) Tj T*
+(    return bag of words array:) Tj T*
+(    1 for each known word that exists in the sentence, 0 otherwise) Tj T*
+(    example:) Tj T*
+(    sentence = ["hello", "how", "are", "you"]) Tj T*
+(    words = ["hi", "hello", "I", "you", "bye", "thank", "cool"]) Tj T*
+(    bog   = [  0 ,    1 ,    0 ,   1 ,    0 ,    0 ,      0]) Tj T*
+(    """) Tj T*
+(   ) Tj T*
+(    sentence_words = [stem\(word\) for word in tokenized_sentence]) Tj T*
+() Tj T*
+(    bag = np.zeros\(len\(words\), dtype=np.float32\)) Tj T*
+(    for idx, w in enumerate\(words\):) Tj T*
+(        if w in sentence_words:) Tj T*
+(            bag[idx] = 1) Tj T*
+() Tj T*
+(    return bag) Tj T*
+() Tj T*
+(==========================================================================================) Tj T*
+(chat.py) Tj T*
+(==========================================================================================) Tj T*
+(from chatbot_engine import \() Tj T*
+(    CONFIDENCE_THRESHOLD,) Tj T*
+(    PRODUCT_QUESTION_TAGS,) Tj T*
+(    ChatbotEngine,) Tj T*
+(    is_admin_login_request,) Tj T*
+(    is_admin_logout_request,) Tj T*
+(    is_cancel_order_request,) Tj T*
+(    is_create_order_request,) Tj T*
+(    is_update_status_request,) Tj T*
+(\)) Tj T*
+(from db import \() Tj T*
+(    authenticate_user,) Tj T*
+(    create_order,) Tj T*
+(    delete_order,) Tj T*
+(    fetch_order_info,) Tj T*
+(    init_db,) Tj T*
+(    seed_from_csv,) Tj T*
+(    update_address,) Tj T*
+(    update_order_status,) Tj T*
+(    verify_customer_email,) Tj T*
+(\)) Tj T*
+(from product_catalog import format_product, format_product_list, get_product_by_id, load_products) Tj T*
+() Tj T*
+() Tj T*
+(bot_name = "Lyla") Tj T*
+() Tj T*
+() Tj T*
+(def get_user_input\(\):) Tj T*
+(    return input\("You: "\).lower\(\)) Tj T*
+() Tj T*
+() Tj T*
+(def handle_exit_commands\(sentence, bot_name\):) Tj T*
+(    exit_commands = ["quit", "exit", "bye", "thanks", "that's all thanks", "goodbye"]) Tj T*
+(    if sentence in exit_commands:) Tj T*
+(        print\(f"{bot_name}: Goodbye! Have a great day!"\)) Tj T*
+(        return True) Tj T*
+(    return False) Tj T*
+() Tj T*
+() Tj T*
+(def handle_special_cases\(sentence, bot_name\):) Tj T*
+(    special_cases = {) Tj T*
+(        "I don't understand": "I apologize for any confusion. Please feel free to ask again.",) Tj T*
+(        "I have to go": "Alright! Take care and see you soon!",) Tj T*
+(    }) Tj T*
+(    if sentence in special_cases:) Tj T*
+(        print\(f"{bot_name}: {special_cases[sentence]}"\)) Tj T*
+(        return True) Tj T*
+(    return False) Tj T*
+() Tj T*
+() Tj T*
+(def get_response\(tag, prob, engine, bot_name, current_user=None, context=None\):) Tj T*
+(    if prob <= CONFIDENCE_THRESHOLD:) Tj T*
+(        print\(f"{bot_name}: I do not understand..."\)) Tj T*
+(        return) Tj T*
+() Tj T*
+(    print\(f"{bot_name}: {engine.get_response_text\(tag, context\)}"\)) Tj T*
+ET
+endstream
+endobj
+13 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 12 0 R >>
+endobj
+14 0 obj
+<< /Length 3687 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(    if tag == "order_status":) Tj T*
+(        order_number = input\("Please enter your order number: "\)) Tj T*
+(        track_order\(order_number\)) Tj T*
+(    elif tag == "update_address":) Tj T*
+(        update_address_cli\(\)) Tj T*
+(    elif tag == "create_order":) Tj T*
+(        create_order_cli\(\)) Tj T*
+(    elif tag == "cancel_order":) Tj T*
+(        cancel_order_cli\(\)) Tj T*
+(    elif tag == "admin_login":) Tj T*
+(        return admin_login_cli\(\)) Tj T*
+(    elif tag == "update_order_status":) Tj T*
+(        update_order_status_cli\(current_user\)) Tj T*
+(    elif tag in PRODUCT_QUESTION_TAGS:) Tj T*
+(        show_products_cli\(\)) Tj T*
+() Tj T*
+(    return current_user) Tj T*
+() Tj T*
+() Tj T*
+(def update_address_cli\(\):) Tj T*
+(    email = input\("Please provide your email for verification: "\)) Tj T*
+(    order_number = input\("Please enter your order number: "\)) Tj T*
+() Tj T*
+(    if not verify_customer_email\(order_number, email\):) Tj T*
+(        print\(f"{bot_name}: Email verification failed."\)) Tj T*
+(        return) Tj T*
+() Tj T*
+(    current_address = fetch_order_info\(order_number\)['customer_address']) Tj T*
+(    print\() Tj T*
+(        f"{bot_name}: Your current registered address is: ") Tj T*
+(        f"{current_address}") Tj T*
+(    \)) Tj T*
+() Tj T*
+(    new_address = input\("Please enter your new address: "\)) Tj T*
+(    print\(f"{bot_name}: You entered the following address: {new_address}"\)) Tj T*
+(    confirmation = input\("Are you sure this is your new address? \(yes/no\): "\)) Tj T*
+() Tj T*
+(    if confirmation.lower\(\) == "yes":) Tj T*
+(        update_address\(order_number, new_address\)) Tj T*
+(        print\(f"{bot_name}: Your address has been updated."\)) Tj T*
+(    else:) Tj T*
+(        print\(f"{bot_name}: Address update cancelled."\)) Tj T*
+() Tj T*
+() Tj T*
+(def track_order\(order_number\):) Tj T*
+(    order_info = fetch_order_info\(order_number\)) Tj T*
+(    if order_info:) Tj T*
+(        print\(""\)) Tj T*
+(        print\("Order Information:"\)) Tj T*
+(        print\(f"Order Number: {order_info['order_number']}"\)) Tj T*
+(        print\(f"Status: {order_info['status']}"\)) Tj T*
+(        print\(f"Current Location: {order_info['current_location']}"\)) Tj T*
+(        print\(f"Destination Address: {order_info['customer_address']}"\)) Tj T*
+(        print\(f"Expected Delivery Date: {order_info['expected_delivery_date']}"\)) Tj T*
+(        print\(f"Product: {order_info.get\('product_name'\) or 'N/A'}"\)) Tj T*
+(        print\(f"Quantity: {order_info.get\('quantity'\) or 'N/A'}"\)) Tj T*
+(        print\(f"Total Price: {order_info.get\('total_price'\) or 'N/A'}"\)) Tj T*
+(        print\(""\)) Tj T*
+(    else:) Tj T*
+(        print\("Order not found."\)) Tj T*
+() Tj T*
+() Tj T*
+(def show_products_cli\(\):) Tj T*
+(    products = load_products\(\)) Tj T*
+(    print\(""\)) Tj T*
+(    print\("Available Products:"\)) Tj T*
+(    print\(format_product_list\(products\)\)) Tj T*
+(    print\(""\)) Tj T*
+() Tj T*
+() Tj T*
+(def select_product_cli\(\):) Tj T*
+(    products = load_products\(\)) Tj T*
+(    if not products:) Tj T*
+(        print\(f"{bot_name}: No products are available right now."\)) Tj T*
+(        return None) Tj T*
+() Tj T*
+(    print\(""\)) Tj T*
+(    print\("Available Products:"\)) Tj T*
+(    print\(format_product_list\(products\)\)) Tj T*
+(    print\(""\)) Tj T*
+(    product_id = input\("Enter the product ID for this order: "\).strip\(\)) Tj T*
+(    product = get_product_by_id\(product_id\)) Tj T*
+(    if not product:) Tj T*
+(        print\(f"{bot_name}: Product not found."\)) Tj T*
+(        return None) Tj T*
+(    return product) Tj T*
+ET
+endstream
+endobj
+15 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 14 0 R >>
+endobj
+16 0 obj
+<< /Length 3514 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+() Tj T*
+() Tj T*
+(def create_order_cli\(selected_product=None\):) Tj T*
+(    product = selected_product or select_product_cli\(\)) Tj T*
+(    if not product:) Tj T*
+(        return) Tj T*
+() Tj T*
+(    customer_name = input\("Enter customer name: "\).strip\(\)) Tj T*
+(    customer_email = input\("Enter customer email: "\).strip\(\)) Tj T*
+(    customer_address = input\("Enter customer address: "\).strip\(\)) Tj T*
+(    quantity_input = input\("Enter quantity: "\).strip\(\)) Tj T*
+(    expected_delivery_date = input\() Tj T*
+(        "Enter expected delivery date \(dd/mm/yyyy\) or leave blank: ") Tj T*
+(    \).strip\(\)) Tj T*
+() Tj T*
+(    try:) Tj T*
+(        quantity = int\(quantity_input\)) Tj T*
+(    except ValueError:) Tj T*
+(        print\("Quantity must be a number."\)) Tj T*
+(        return) Tj T*
+() Tj T*
+(    if \() Tj T*
+(        not customer_name) Tj T*
+(        or not customer_email) Tj T*
+(        or not customer_address) Tj T*
+(        or quantity < 1) Tj T*
+(    \):) Tj T*
+(        print\("Customer name, email, address, and quantity are required."\)) Tj T*
+(        return) Tj T*
+() Tj T*
+(    try:) Tj T*
+(        unit_price = float\(product["price"]\)) Tj T*
+(        total_price = unit_price * quantity) Tj T*
+(        ok, message = create_order\() Tj T*
+(            customer_email=customer_email,) Tj T*
+(            customer_address=customer_address,) Tj T*
+(            customer_name=customer_name,) Tj T*
+(            status="Processing",) Tj T*
+(            current_location="Warehouse",) Tj T*
+(            expected_delivery_date=expected_delivery_date or None,) Tj T*
+(            product_id=product["product_id"],) Tj T*
+(            product_name=product["name"],) Tj T*
+(            quantity=quantity,) Tj T*
+(            unit_price=unit_price,) Tj T*
+(            total_price=total_price,) Tj T*
+(        \)) Tj T*
+(        if ok:) Tj T*
+(            print\(message\)) Tj T*
+(            print\(f"Product: {format_product\(product\)}"\)) Tj T*
+(            print\(f"Quantity: {quantity}"\)) Tj T*
+(            print\(f"Total: ${total_price:.2f}"\)) Tj T*
+(        else:) Tj T*
+(            print\(message\)) Tj T*
+(    except Exception as e:) Tj T*
+(        print\(f"Failed to create order: {e}"\)) Tj T*
+() Tj T*
+() Tj T*
+(def cancel_order_cli\(\):) Tj T*
+(    order_number = input\("Please enter the order number to cancel: "\).strip\(\)) Tj T*
+(    email = input\("Please provide your email for verification: "\).strip\(\)) Tj T*
+() Tj T*
+(    if not order_number or not email:) Tj T*
+(        print\(f"{bot_name}: Order number and email are required."\)) Tj T*
+(        return) Tj T*
+() Tj T*
+(    if not verify_customer_email\(order_number, email\):) Tj T*
+(        print\(f"{bot_name}: Email verification failed."\)) Tj T*
+(        return) Tj T*
+() Tj T*
+(    confirmation = input\() Tj T*
+(        f"Are you sure you want to cancel order {order_number}? \(yes/no\): ") Tj T*
+(    \)) Tj T*
+(    if confirmation.lower\(\) != "yes":) Tj T*
+(        print\(f"{bot_name}: Order cancellation cancelled."\)) Tj T*
+(        return) Tj T*
+() Tj T*
+(    if delete_order\(order_number\):) Tj T*
+(        print\(f"{bot_name}: Your order has been cancelled and deleted from the database."\)) Tj T*
+(    else:) Tj T*
+(        print\(f"{bot_name}: Order not found."\)) Tj T*
+() Tj T*
+() Tj T*
+(def admin_login_cli\(\):) Tj T*
+(    username = input\("Username: "\).strip\(\)) Tj T*
+(    password = input\("Password: "\).strip\(\)) Tj T*
+() Tj T*
+ET
+endstream
+endobj
+17 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 16 0 R >>
+endobj
+18 0 obj
+<< /Length 3659 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(    if not username or not password:) Tj T*
+(        print\(f"{bot_name}: Username and password are required."\)) Tj T*
+(        return None) Tj T*
+() Tj T*
+(    user = authenticate_user\(username, password\)) Tj T*
+(    if not user or user.get\("role"\) != "admin":) Tj T*
+(        print\(f"{bot_name}: Admin login failed."\)) Tj T*
+(        return None) Tj T*
+() Tj T*
+(    print\(f"{bot_name}: Admin login successful. Welcome, {user.get\('full_name'\) or username}."\)) Tj T*
+(    return user) Tj T*
+() Tj T*
+() Tj T*
+(def admin_logout_cli\(current_user\):) Tj T*
+(    if not current_user:) Tj T*
+(        print\(f"{bot_name}: No admin is logged in."\)) Tj T*
+(        return None) Tj T*
+() Tj T*
+(    print\(f"{bot_name}: Admin logged out."\)) Tj T*
+(    return None) Tj T*
+() Tj T*
+() Tj T*
+(def update_order_status_cli\(current_user\):) Tj T*
+(    if not current_user or current_user.get\("role"\) != "admin":) Tj T*
+(        print\(f"{bot_name}: Only an admin can update order status. Type 'admin login' first."\)) Tj T*
+(        return) Tj T*
+() Tj T*
+(    order_number = input\("Enter order number: "\).strip\(\)) Tj T*
+(    status = input\("Enter new status \(Processing, Shipped, Delivered, Cancelled\): "\).strip\(\)) Tj T*
+(    current_location = input\("Enter current location, or leave blank to keep existing: "\).strip\(\)) Tj T*
+() Tj T*
+(    if not order_number or not status:) Tj T*
+(        print\(f"{bot_name}: Order number and status are required."\)) Tj T*
+(        return) Tj T*
+() Tj T*
+(    if update_order_status\(order_number, status, current_location or None\):) Tj T*
+(        print\(f"{bot_name}: Order status updated successfully."\)) Tj T*
+(    else:) Tj T*
+(        print\(f"{bot_name}: Order not found."\)) Tj T*
+() Tj T*
+() Tj T*
+(if __name__ == "__main__":) Tj T*
+(    try:) Tj T*
+(        init_db\(\)) Tj T*
+(        seed_from_csv\("orders.csv"\)) Tj T*
+(    except Exception as e:) Tj T*
+(        print\(f"Error initializing database: {e}"\)) Tj T*
+() Tj T*
+(    try:) Tj T*
+(        engine = ChatbotEngine.from_files\("data.pth", "intents.json"\)) Tj T*
+(    except Exception as e:) Tj T*
+(        print\(f"Error loading chatbot model: {e}"\)) Tj T*
+(        raise SystemExit) Tj T*
+() Tj T*
+(    bot_name = "Lyla") Tj T*
+(    context = None) Tj T*
+(    current_user = None) Tj T*
+() Tj T*
+(    print\() Tj T*
+(        "Hello! I am Lyla from CoffeeMugs. What do you need? ") Tj T*
+(        "\(type 'quit', 'exit', or 'bye' to exit\)") Tj T*
+(    \)) Tj T*
+() Tj T*
+(    while True:) Tj T*
+(        sentence = get_user_input\(\)) Tj T*
+() Tj T*
+(        if handle_exit_commands\(sentence, bot_name\) or handle_special_cases\(sentence, bot_name\):) Tj T*
+(            break) Tj T*
+() Tj T*
+(        if is_admin_login_request\(sentence\):) Tj T*
+(            tag, prob = "admin_login", 1.0) Tj T*
+(        elif is_admin_logout_request\(sentence\):) Tj T*
+(            current_user = admin_logout_cli\(current_user\)) Tj T*
+(            continue) Tj T*
+(        elif is_update_status_request\(sentence\):) Tj T*
+(            tag, prob = "update_order_status", 1.0) Tj T*
+(        elif is_cancel_order_request\(sentence\):) Tj T*
+(            tag, prob = "cancel_order", 1.0) Tj T*
+(        elif is_create_order_request\(sentence\):) Tj T*
+(            tag, prob = "create_order", 1.0) Tj T*
+(        else:) Tj T*
+(            tag, prob = engine.predict\(sentence\)) Tj T*
+(        current_user = get_response\(tag, prob, engine, bot_name, current_user, context\)) Tj T*
+() Tj T*
+(==========================================================================================) Tj T*
+(app.py) Tj T*
+ET
+endstream
+endobj
+19 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 18 0 R >>
+endobj
+20 0 obj
+<< /Length 3516 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(==========================================================================================) Tj T*
+(import tkinter as tk) Tj T*
+(from tkinter import font) Tj T*
+(from tkinter import simpledialog) Tj T*
+() Tj T*
+(from chatbot_engine import \() Tj T*
+(    CONFIDENCE_THRESHOLD,) Tj T*
+(    PRODUCT_QUESTION_TAGS,) Tj T*
+(    ChatbotEngine,) Tj T*
+(    is_admin_login_request,) Tj T*
+(    is_admin_logout_request,) Tj T*
+(    is_cancel_order_request,) Tj T*
+(    is_create_order_request,) Tj T*
+(    is_update_status_request,) Tj T*
+(\)) Tj T*
+(from db import \() Tj T*
+(    authenticate_user,) Tj T*
+(    create_order,) Tj T*
+(    delete_order,) Tj T*
+(    fetch_customer_address,) Tj T*
+(    fetch_order_info,) Tj T*
+(    init_db,) Tj T*
+(    seed_from_csv,) Tj T*
+(    update_address,) Tj T*
+(    update_order_status,) Tj T*
+(    verify_customer_email,) Tj T*
+(\)) Tj T*
+(from product_catalog import format_product, format_product_list, get_product_by_id, load_products) Tj T*
+() Tj T*
+() Tj T*
+(class ChatGUI:) Tj T*
+(    def __init__\(self, master\):) Tj T*
+(        self.master = master) Tj T*
+(        master.title\("E-commerce Chatbot"\)) Tj T*
+(        master.geometry\("520x680"\)) Tj T*
+(        master.minsize\(460, 560\)) Tj T*
+(        master.configure\(bg="#101827"\)) Tj T*
+(        master.option_add\("*Font", "Helvetica 11"\)) Tj T*
+(        master.columnconfigure\(0, weight=1\)) Tj T*
+(        master.rowconfigure\(1, weight=1\)) Tj T*
+() Tj T*
+(        self.bot_name = "bot4urLIF3") Tj T*
+(        self.current_user = None) Tj T*
+(        self.setup_styles\(\)) Tj T*
+(        self.build_header\(\)) Tj T*
+(        self.build_chat_area\(\)) Tj T*
+(        self.build_input_area\(\)) Tj T*
+() Tj T*
+(        self.engine = ChatbotEngine.from_files\("data.pth", "intents.json"\)) Tj T*
+(        self.setup_database\(\)) Tj T*
+(        self.display_message\() Tj T*
+(            self.bot_name,) Tj T*
+(            "Hi, I am bot4urLIF3. How can I help you today?",) Tj T*
+(        \)) Tj T*
+() Tj T*
+(    def setup_styles\(self\):) Tj T*
+(        self.colors = {) Tj T*
+(            "app_bg": "#101827",) Tj T*
+(            "header_bg": "#162033",) Tj T*
+(            "panel": "#0b1220",) Tj T*
+(            "panel_border": "#263349",) Tj T*
+(            "text": "#e5edf8",) Tj T*
+(            "muted": "#91a3ba",) Tj T*
+(            "bot": "#6ea8fe",) Tj T*
+(            "user": "#5eead4",) Tj T*
+(            "bot_bubble": "#17233a",) Tj T*
+(            "user_bubble": "#123b3a",) Tj T*
+(            "button": "#3b82f6",) Tj T*
+(            "button_active": "#2563eb",) Tj T*
+(            "entry_bg": "#111c2f",) Tj T*
+(        }) Tj T*
+(        self.fonts = {) Tj T*
+(            "title": font.Font\(family="Helvetica", size=18, weight="bold"\),) Tj T*
+(            "subtitle": font.Font\(family="Helvetica", size=10\),) Tj T*
+(            "body": font.Font\(family="Helvetica", size=12\),) Tj T*
+(            "message": font.Font\(family="Helvetica", size=12\),) Tj T*
+(            "sender": font.Font\(family="Helvetica", size=11, weight="bold"\),) Tj T*
+(            "button": font.Font\(family="Helvetica", size=11, weight="bold"\),) Tj T*
+(        }) Tj T*
+() Tj T*
+(    def build_header\(self\):) Tj T*
+(        header = tk.Frame\(self.master, bg=self.colors["header_bg"]\)) Tj T*
+(        header.grid\(row=0, column=0, sticky="ew", padx=16, pady=\(16, 10\)\)) Tj T*
+(        header.columnconfigure\(0, weight=1\)) Tj T*
+() Tj T*
+(        title = tk.Label\() Tj T*
+ET
+endstream
+endobj
+21 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 20 0 R >>
+endobj
+22 0 obj
+<< /Length 3805 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(            header,) Tj T*
+(            text="E-commerce Chatbot",) Tj T*
+(            bg=self.colors["header_bg"],) Tj T*
+(            fg=self.colors["text"],) Tj T*
+(            font=self.fonts["title"],) Tj T*
+(            anchor="w",) Tj T*
+(        \)) Tj T*
+(        title.grid\(row=0, column=0, sticky="w", padx=16, pady=\(14, 0\)\)) Tj T*
+() Tj T*
+(        subtitle = tk.Label\() Tj T*
+(            header,) Tj T*
+(            text="Customer support assistant",) Tj T*
+(            bg=self.colors["header_bg"],) Tj T*
+(            fg=self.colors["muted"],) Tj T*
+(            font=self.fonts["subtitle"],) Tj T*
+(            anchor="w",) Tj T*
+(        \)) Tj T*
+(        subtitle.grid\(row=1, column=0, sticky="w", padx=16, pady=\(3, 14\)\)) Tj T*
+() Tj T*
+(        status = tk.Label\() Tj T*
+(            header,) Tj T*
+(            text="Online",) Tj T*
+(            bg=self.colors["header_bg"],) Tj T*
+(            fg="#86efac",) Tj T*
+(            font=self.fonts["subtitle"],) Tj T*
+(        \)) Tj T*
+(        status.grid\(row=0, column=1, rowspan=2, sticky="e", padx=16\)) Tj T*
+() Tj T*
+(    def build_chat_area\(self\):) Tj T*
+(        chat_shell = tk.Frame\() Tj T*
+(            self.master,) Tj T*
+(            bg=self.colors["panel"],) Tj T*
+(            relief=tk.FLAT,) Tj T*
+(            highlightthickness=1,) Tj T*
+(            highlightbackground=self.colors["panel_border"],) Tj T*
+(            highlightcolor=self.colors["bot"],) Tj T*
+(        \)) Tj T*
+(        chat_shell.grid\(row=1, column=0, sticky="nsew", padx=16, pady=\(0, 12\)\)) Tj T*
+(        chat_shell.columnconfigure\(0, weight=1\)) Tj T*
+(        chat_shell.rowconfigure\(0, weight=1\)) Tj T*
+() Tj T*
+(        self.chat_canvas = tk.Canvas\() Tj T*
+(            chat_shell,) Tj T*
+(            bg=self.colors["panel"],) Tj T*
+(            bd=0,) Tj T*
+(            highlightthickness=0,) Tj T*
+(        \)) Tj T*
+(        self.chat_canvas.grid\(row=0, column=0, sticky="nsew"\)) Tj T*
+() Tj T*
+(        scrollbar = tk.Scrollbar\() Tj T*
+(            chat_shell,) Tj T*
+(            orient=tk.VERTICAL,) Tj T*
+(            command=self.chat_canvas.yview,) Tj T*
+(            relief=tk.FLAT,) Tj T*
+(            borderwidth=0,) Tj T*
+(        \)) Tj T*
+(        scrollbar.grid\(row=0, column=1, sticky="ns"\)) Tj T*
+(        scrollbar.configure\() Tj T*
+(            bg=self.colors["panel"],) Tj T*
+(            activebackground=self.colors["panel_border"],) Tj T*
+(            troughcolor=self.colors["panel"],) Tj T*
+(        \)) Tj T*
+(        self.chat_canvas.configure\(yscrollcommand=scrollbar.set\)) Tj T*
+() Tj T*
+(        self.messages_frame = tk.Frame\(self.chat_canvas, bg=self.colors["panel"]\)) Tj T*
+(        self.messages_window = self.chat_canvas.create_window\() Tj T*
+(            0,) Tj T*
+(            0,) Tj T*
+(            window=self.messages_frame,) Tj T*
+(            anchor="nw",) Tj T*
+(        \)) Tj T*
+(        self.chat_canvas.bind\("<Configure>", self.resize_chat_content\)) Tj T*
+(        self.messages_frame.bind\("<Configure>", self.update_chat_scroll_region\)) Tj T*
+(        self.bind_mousewheel\(self.chat_canvas\)) Tj T*
+(        self.bind_mousewheel\(self.messages_frame\)) Tj T*
+() Tj T*
+(    def resize_chat_content\(self, event\):) Tj T*
+(        self.chat_canvas.itemconfigure\(self.messages_window, width=event.width\)) Tj T*
+(        self.draw_chat_background\(event.width, event.height\)) Tj T*
+() Tj T*
+(    def update_chat_scroll_region\(self, _event=None\):) Tj T*
+(        self.chat_canvas.configure\(scrollregion=self.chat_canvas.bbox\("all"\)\)) Tj T*
+() Tj T*
+(    def draw_chat_background\(self, width, height\):) Tj T*
+(        self.chat_canvas.delete\("chat_bg"\)) Tj T*
+(        for x in range\(-height, width, 96\):) Tj T*
+ET
+endstream
+endobj
+23 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 22 0 R >>
+endobj
+24 0 obj
+<< /Length 3830 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(            self.chat_canvas.create_line\() Tj T*
+(                x,) Tj T*
+(                height,) Tj T*
+(                x + height,) Tj T*
+(                0,) Tj T*
+(                fill="#111c2f",) Tj T*
+(                width=1,) Tj T*
+(                tags="chat_bg",) Tj T*
+(            \)) Tj T*
+(        for x in range\(28, width, 96\):) Tj T*
+(            for y in range\(28, height, 96\):) Tj T*
+(                self.chat_canvas.create_oval\() Tj T*
+(                    x,) Tj T*
+(                    y,) Tj T*
+(                    x + 2,) Tj T*
+(                    y + 2,) Tj T*
+(                    fill="#1c2b45",) Tj T*
+(                    outline="",) Tj T*
+(                    tags="chat_bg",) Tj T*
+(                \)) Tj T*
+(        self.chat_canvas.tag_lower\("chat_bg"\)) Tj T*
+() Tj T*
+(    def bind_mousewheel\(self, widget\):) Tj T*
+(        widget.bind\("<MouseWheel>", self.on_chat_mousewheel\)) Tj T*
+(        widget.bind\("<Button-4>", self.on_chat_mousewheel\)) Tj T*
+(        widget.bind\("<Button-5>", self.on_chat_mousewheel\)) Tj T*
+() Tj T*
+(    def on_chat_mousewheel\(self, event\):) Tj T*
+(        if getattr\(event, "num", None\) == 4:) Tj T*
+(            self.chat_canvas.yview_scroll\(-1, "units"\)) Tj T*
+(        elif getattr\(event, "num", None\) == 5:) Tj T*
+(            self.chat_canvas.yview_scroll\(1, "units"\)) Tj T*
+(        else:) Tj T*
+(            direction = -1 if event.delta > 0 else 1) Tj T*
+(            self.chat_canvas.yview_scroll\(direction, "units"\)) Tj T*
+() Tj T*
+(    def build_input_area\(self\):) Tj T*
+(        input_frame = tk.Frame\(self.master, bg=self.colors["app_bg"]\)) Tj T*
+(        input_frame.grid\(row=2, column=0, sticky="ew", padx=16, pady=\(0, 16\)\)) Tj T*
+(        input_frame.columnconfigure\(0, weight=1\)) Tj T*
+() Tj T*
+(        self.input_field = tk.Entry\() Tj T*
+(            input_frame,) Tj T*
+(            bg=self.colors["entry_bg"],) Tj T*
+(            fg=self.colors["text"],) Tj T*
+(            insertbackground=self.colors["bot"],) Tj T*
+(            relief=tk.FLAT,) Tj T*
+(            borderwidth=0,) Tj T*
+(            highlightthickness=1,) Tj T*
+(            highlightbackground=self.colors["panel_border"],) Tj T*
+(            highlightcolor=self.colors["bot"],) Tj T*
+(            font=self.fonts["body"],) Tj T*
+(        \)) Tj T*
+(        self.input_field.grid\(row=0, column=0, sticky="ew", padx=\(0, 10\), ipady=11\)) Tj T*
+(        self.input_field.bind\("<Return>", self.send_message\)) Tj T*
+() Tj T*
+(        self.send_button = tk.Label\() Tj T*
+(            input_frame,) Tj T*
+(            text="Send",) Tj T*
+(            bg=self.colors["button"],) Tj T*
+(            fg="#ffffff",) Tj T*
+(            cursor="hand2",) Tj T*
+(            font=self.fonts["button"],) Tj T*
+(            padx=22,) Tj T*
+(            pady=12,) Tj T*
+(        \)) Tj T*
+(        self.send_button.grid\(row=0, column=1\)) Tj T*
+(        self.send_button.bind\("<Button-1>", self.send_message\)) Tj T*
+(        self.send_button.bind\("<Enter>", self.on_send_hover\)) Tj T*
+(        self.send_button.bind\("<Leave>", self.on_send_leave\)) Tj T*
+() Tj T*
+(    def on_send_hover\(self, _event=None\):) Tj T*
+(        self.send_button.configure\(bg=self.colors["button_active"]\)) Tj T*
+() Tj T*
+(    def on_send_leave\(self, _event=None\):) Tj T*
+(        self.send_button.configure\(bg=self.colors["button"]\)) Tj T*
+() Tj T*
+(    def setup_database\(self\):) Tj T*
+(        try:) Tj T*
+(            init_db\(\)) Tj T*
+(            seed_from_csv\("orders.csv"\)) Tj T*
+(        except Exception as e:) Tj T*
+(            print\(f"Error initializing database: {e}"\)) Tj T*
+() Tj T*
+(    def send_message\(self, event=None\):) Tj T*
+(        user_input = self.input_field.get\(\).strip\(\)) Tj T*
+ET
+endstream
+endobj
+25 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 24 0 R >>
+endobj
+26 0 obj
+<< /Length 3774 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(        if not user_input:) Tj T*
+(            return) Tj T*
+(        self.input_field.delete\(0, tk.END\)) Tj T*
+(        self.display_message\("You", user_input\)) Tj T*
+(        self.generate_bot_response\(user_input\)) Tj T*
+() Tj T*
+(    def generate_bot_response\(self, user_input\):) Tj T*
+(        if is_admin_login_request\(user_input\):) Tj T*
+(            self.admin_login_gui\(\)) Tj T*
+(            return) Tj T*
+(        if is_admin_logout_request\(user_input\):) Tj T*
+(            self.admin_logout\(\)) Tj T*
+(            return) Tj T*
+(        if is_update_status_request\(user_input\):) Tj T*
+(            self.update_order_status_gui\(\)) Tj T*
+(            return) Tj T*
+(        if is_cancel_order_request\(user_input\):) Tj T*
+(            self.get_response\("cancel_order", 1.0\)) Tj T*
+(            return) Tj T*
+(        if is_create_order_request\(user_input\):) Tj T*
+(            self.get_response\("create_order", 1.0\)) Tj T*
+(            return) Tj T*
+() Tj T*
+(        tag, prob = self.engine.predict\(user_input\)) Tj T*
+(        self.get_response\(tag, prob\)) Tj T*
+() Tj T*
+(    def is_admin\(self\):) Tj T*
+(        return self.current_user and self.current_user.get\("role"\) == "admin") Tj T*
+() Tj T*
+(    def get_response\(self, tag, prob\):) Tj T*
+(        if prob <= CONFIDENCE_THRESHOLD:) Tj T*
+(            self.display_message\() Tj T*
+(                self.bot_name,) Tj T*
+(                "I do not understand, please rephrase your question so I can better assist you.",) Tj T*
+(            \)) Tj T*
+(            return) Tj T*
+() Tj T*
+(        self.display_message\(self.bot_name, self.engine.get_response_text\(tag\)\)) Tj T*
+(        if tag == "order_status":) Tj T*
+(            self.track_order_gui\(\)) Tj T*
+(        elif tag == "update_address":) Tj T*
+(            self.update_address_gui\(\)) Tj T*
+(        elif tag == "create_order":) Tj T*
+(            self.create_order_gui\(\)) Tj T*
+(        elif tag == "cancel_order":) Tj T*
+(            self.cancel_order_gui\(\)) Tj T*
+(        elif tag == "admin_login":) Tj T*
+(            self.admin_login_gui\(\)) Tj T*
+(        elif tag == "update_order_status":) Tj T*
+(            self.update_order_status_gui\(\)) Tj T*
+(        elif tag in PRODUCT_QUESTION_TAGS:) Tj T*
+(            self.show_products_gui\(\)) Tj T*
+() Tj T*
+(    def display_message\(self, sender, message\):) Tj T*
+(        is_user = sender == "You") Tj T*
+(        row = tk.Frame\(self.messages_frame, bg=self.colors["panel"]\)) Tj T*
+(        row.pack\(fill=tk.X, padx=18, pady=\(14, 4\)\)) Tj T*
+() Tj T*
+(        content = tk.Frame\(row, bg=self.colors["panel"]\)) Tj T*
+(        content.pack\(anchor="e" if is_user else "w"\)) Tj T*
+() Tj T*
+(        sender_label = tk.Label\() Tj T*
+(            content,) Tj T*
+(            text=sender,) Tj T*
+(            bg=self.colors["panel"],) Tj T*
+(            fg=self.colors["user"] if is_user else self.colors["bot"],) Tj T*
+(            font=self.fonts["sender"],) Tj T*
+(        \)) Tj T*
+(        sender_label.pack\(anchor="e" if is_user else "w", pady=\(0, 4\)\)) Tj T*
+() Tj T*
+(        bubble = tk.Label\() Tj T*
+(            content,) Tj T*
+(            text=message,) Tj T*
+(            bg=self.colors["user_bubble"] if is_user else self.colors["bot_bubble"],) Tj T*
+(            fg=self.colors["text"],) Tj T*
+(            font=self.fonts["message"],) Tj T*
+(            justify=tk.LEFT,) Tj T*
+(            anchor="w",) Tj T*
+(            padx=14,) Tj T*
+(            pady=10,) Tj T*
+(            wraplength=380,) Tj T*
+(        \)) Tj T*
+(        bubble.pack\(anchor="e" if is_user else "w"\)) Tj T*
+() Tj T*
+(        self.bind_mousewheel\(row\)) Tj T*
+(        self.bind_mousewheel\(content\)) Tj T*
+ET
+endstream
+endobj
+27 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 26 0 R >>
+endobj
+28 0 obj
+<< /Length 4527 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(        self.bind_mousewheel\(sender_label\)) Tj T*
+(        self.bind_mousewheel\(bubble\)) Tj T*
+(        self.master.after\(20, self.scroll_chat_to_bottom\)) Tj T*
+() Tj T*
+(    def scroll_chat_to_bottom\(self\):) Tj T*
+(        self.update_chat_scroll_region\(\)) Tj T*
+(        self.chat_canvas.yview_moveto\(1.0\)) Tj T*
+() Tj T*
+(    def track_order_gui\(self\):) Tj T*
+(        order_number = simpledialog.askstring\("Track Order", "Please enter your order number:"\)) Tj T*
+(        if order_number:) Tj T*
+(            order_info = fetch_order_info\(order_number\)) Tj T*
+(            if order_info:) Tj T*
+(                message = \() Tj T*
+(                    f"Order Number: {order_info['order_number']}\\n") Tj T*
+(                    f"Status: {order_info['status']}\\n") Tj T*
+(                    f"Current Location: {order_info['current_location']}\\n") Tj T*
+(                    f"Destination Address: {order_info['customer_address']}\\n") Tj T*
+(                    f"Expected Delivery Date: {order_info['expected_delivery_date']}\\n") Tj T*
+(                    f"Product: {order_info.get\('product_name'\) or 'N/A'}\\n") Tj T*
+(                    f"Quantity: {order_info.get\('quantity'\) or 'N/A'}\\n") Tj T*
+(                    f"Total Price: {order_info.get\('total_price'\) or 'N/A'}\\n") Tj T*
+(                \)) Tj T*
+(                self.display_message\(self.bot_name, message\)) Tj T*
+(            else:) Tj T*
+(                self.display_message\(self.bot_name, "Order not found."\)) Tj T*
+(        else:) Tj T*
+(            self.display_message\(self.bot_name, "Order number cannot be empty."\)) Tj T*
+() Tj T*
+(    def update_address_gui\(self\):) Tj T*
+(        order_number = simpledialog.askstring\() Tj T*
+(            "Update Address",) Tj T*
+(            "Please enter your order number:",) Tj T*
+(        \)) Tj T*
+(        email = simpledialog.askstring\() Tj T*
+(            "Update Address",) Tj T*
+(            "Please provide your email for verification:",) Tj T*
+(        \)) Tj T*
+(        if order_number and email:) Tj T*
+(            if verify_customer_email\(order_number, email\):) Tj T*
+(                current_address = fetch_customer_address\(email\)) Tj T*
+(                new_address = simpledialog.askstring\() Tj T*
+(                    "Update Address",) Tj T*
+(                    f"Your current address is {current_address}. Please enter your new address:",) Tj T*
+(                \)) Tj T*
+(                if new_address:) Tj T*
+(                    confirmation = simpledialog.askstring\() Tj T*
+(                        "Update Address",) Tj T*
+(                        \() Tj T*
+(                            f"You entered the following address: {new_address}. ") Tj T*
+(                            "Are you sure this is your new address? \(yes/no\):") Tj T*
+(                        \),) Tj T*
+(                    \)) Tj T*
+(                    if confirmation.lower\(\) == "yes":) Tj T*
+(                        update_address\(order_number, new_address\)) Tj T*
+(                        self.display_message\(self.bot_name, "Your address has been updated."\)) Tj T*
+(                    else:) Tj T*
+(                        self.display_message\(self.bot_name, "Address update cancelled."\)) Tj T*
+(            else:) Tj T*
+(                self.display_message\(self.bot_name, "Email verification failed."\)) Tj T*
+(        else:) Tj T*
+(            self.display_message\(self.bot_name, "Order number and email cannot be empty."\)) Tj T*
+() Tj T*
+(    def show_products_gui\(self\):) Tj T*
+(        products = load_products\(\)) Tj T*
+(        self.display_message\() Tj T*
+(            self.bot_name,) Tj T*
+(            "Available products:\\n" + format_product_list\(products\),) Tj T*
+(        \)) Tj T*
+() Tj T*
+(    def select_product_gui\(self\):) Tj T*
+(        products = load_products\(\)) Tj T*
+(        if not products:) Tj T*
+(            self.display_message\(self.bot_name, "No products are available right now."\)) Tj T*
+(            return None) Tj T*
+() Tj T*
+(        self.display_message\() Tj T*
+(            self.bot_name,) Tj T*
+(            "Available products:\\n" + format_product_list\(products\),) Tj T*
+(        \)) Tj T*
+(        product_id = simpledialog.askstring\() Tj T*
+(            "Create Order",) Tj T*
+(            "Enter the product ID for this order:",) Tj T*
+(        \)) Tj T*
+(        product = get_product_by_id\(product_id\)) Tj T*
+(        if not product:) Tj T*
+ET
+endstream
+endobj
+29 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 28 0 R >>
+endobj
+30 0 obj
+<< /Length 3935 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(            self.display_message\(self.bot_name, "Product not found."\)) Tj T*
+(            return None) Tj T*
+(        return product) Tj T*
+() Tj T*
+(    def admin_login_gui\(self\):) Tj T*
+(        username = simpledialog.askstring\("Admin Login", "Username:"\)) Tj T*
+(        password = simpledialog.askstring\("Admin Login", "Password:", show="*"\)) Tj T*
+() Tj T*
+(        if not username or not password:) Tj T*
+(            self.display_message\(self.bot_name, "Username and password are required."\)) Tj T*
+(            return) Tj T*
+() Tj T*
+(        user = authenticate_user\(username, password\)) Tj T*
+(        if not user or user.get\("role"\) != "admin":) Tj T*
+(            self.display_message\(self.bot_name, "Admin login failed."\)) Tj T*
+(            return) Tj T*
+() Tj T*
+(        self.current_user = user) Tj T*
+(        self.display_message\() Tj T*
+(            self.bot_name,) Tj T*
+(            f"Admin login successful. Welcome, {user.get\('full_name'\) or username}.",) Tj T*
+(        \)) Tj T*
+() Tj T*
+(    def admin_logout\(self\):) Tj T*
+(        if not self.current_user:) Tj T*
+(            self.display_message\(self.bot_name, "No admin is logged in."\)) Tj T*
+(            return) Tj T*
+(        self.current_user = None) Tj T*
+(        self.display_message\(self.bot_name, "Admin logged out."\)) Tj T*
+() Tj T*
+(    def update_order_status_gui\(self\):) Tj T*
+(        if not self.is_admin\(\):) Tj T*
+(            self.display_message\() Tj T*
+(                self.bot_name,) Tj T*
+(                "Only an admin can update order status. Type 'admin login' first.",) Tj T*
+(            \)) Tj T*
+(            return) Tj T*
+() Tj T*
+(        order_number = simpledialog.askstring\() Tj T*
+(            "Update Order Status",) Tj T*
+(            "Enter order number:",) Tj T*
+(        \)) Tj T*
+(        status = simpledialog.askstring\() Tj T*
+(            "Update Order Status",) Tj T*
+(            "Enter new status \(Processing, Shipped, Delivered, Cancelled\):",) Tj T*
+(        \)) Tj T*
+(        current_location = simpledialog.askstring\() Tj T*
+(            "Update Order Status",) Tj T*
+(            "Enter current location, or leave blank to keep existing:",) Tj T*
+(        \)) Tj T*
+() Tj T*
+(        if not order_number or not status:) Tj T*
+(            self.display_message\(self.bot_name, "Order number and status are required."\)) Tj T*
+(            return) Tj T*
+() Tj T*
+(        if update_order_status\(order_number, status, current_location or None\):) Tj T*
+(            self.display_message\(self.bot_name, "Order status updated successfully."\)) Tj T*
+(        else:) Tj T*
+(            self.display_message\(self.bot_name, "Order not found."\)) Tj T*
+() Tj T*
+(    def create_order_gui\(self, selected_product=None\):) Tj T*
+(        product = selected_product or self.select_product_gui\(\)) Tj T*
+(        if not product:) Tj T*
+(            return) Tj T*
+() Tj T*
+(        customer_name = simpledialog.askstring\("Create Order", "Enter customer name:"\)) Tj T*
+(        customer_email = simpledialog.askstring\("Create Order", "Enter customer email:"\)) Tj T*
+(        customer_address = simpledialog.askstring\("Create Order", "Enter customer address:"\)) Tj T*
+(        quantity = simpledialog.askinteger\() Tj T*
+(            "Create Order",) Tj T*
+(            "Enter quantity:",) Tj T*
+(            minvalue=1,) Tj T*
+(            initialvalue=1,) Tj T*
+(        \)) Tj T*
+(        expected_delivery_date = simpledialog.askstring\() Tj T*
+(            "Create Order",) Tj T*
+(            "Enter expected delivery date \(dd/mm/yyyy\) or leave blank:",) Tj T*
+(        \)) Tj T*
+() Tj T*
+(        if \() Tj T*
+(            not customer_name) Tj T*
+(            or not customer_email) Tj T*
+(            or not customer_address) Tj T*
+(            or not quantity) Tj T*
+(        \):) Tj T*
+(            self.display_message\() Tj T*
+ET
+endstream
+endobj
+31 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 30 0 R >>
+endobj
+32 0 obj
+<< /Length 3739 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(                self.bot_name,) Tj T*
+(                "Customer name, email, address, and quantity are required.",) Tj T*
+(            \)) Tj T*
+(            return) Tj T*
+() Tj T*
+(        try:) Tj T*
+(            unit_price = float\(product["price"]\)) Tj T*
+(            total_price = unit_price * quantity) Tj T*
+(            ok, message = create_order\() Tj T*
+(                customer_email=customer_email,) Tj T*
+(                customer_address=customer_address,) Tj T*
+(                customer_name=customer_name,) Tj T*
+(                status="Processing",) Tj T*
+(                current_location="Warehouse",) Tj T*
+(                expected_delivery_date=expected_delivery_date,) Tj T*
+(                product_id=product["product_id"],) Tj T*
+(                product_name=product["name"],) Tj T*
+(                quantity=quantity,) Tj T*
+(                unit_price=unit_price,) Tj T*
+(                total_price=total_price,) Tj T*
+(            \)) Tj T*
+(            if ok:) Tj T*
+(                self.display_message\() Tj T*
+(                    self.bot_name,) Tj T*
+(                    \() Tj T*
+(                        f"{message}\\n") Tj T*
+(                        f"Product: {format_product\(product\)}\\n") Tj T*
+(                        f"Quantity: {quantity}\\n") Tj T*
+(                        f"Total: ${total_price:.2f}") Tj T*
+(                    \),) Tj T*
+(                \)) Tj T*
+(            else:) Tj T*
+(                self.display_message\(self.bot_name, message\)) Tj T*
+(        except Exception as e:) Tj T*
+(            self.display_message\(self.bot_name, f"Failed to create order: {e}"\)) Tj T*
+() Tj T*
+(    def cancel_order_gui\(self\):) Tj T*
+(        order_number = simpledialog.askstring\() Tj T*
+(            "Cancel Order",) Tj T*
+(            "Please enter the order number to cancel:",) Tj T*
+(        \)) Tj T*
+(        email = simpledialog.askstring\() Tj T*
+(            "Cancel Order",) Tj T*
+(            "Please provide your email for verification:",) Tj T*
+(        \)) Tj T*
+() Tj T*
+(        if not order_number or not email:) Tj T*
+(            self.display_message\(self.bot_name, "Order number and email are required."\)) Tj T*
+(            return) Tj T*
+() Tj T*
+(        if not verify_customer_email\(order_number, email\):) Tj T*
+(            self.display_message\(self.bot_name, "Email verification failed."\)) Tj T*
+(            return) Tj T*
+() Tj T*
+(        confirmation = simpledialog.askstring\() Tj T*
+(            "Cancel Order",) Tj T*
+(            f"Are you sure you want to cancel order {order_number}? \(yes/no\):",) Tj T*
+(        \)) Tj T*
+(        if not confirmation or confirmation.lower\(\) != "yes":) Tj T*
+(            self.display_message\(self.bot_name, "Order cancellation cancelled."\)) Tj T*
+(            return) Tj T*
+() Tj T*
+(        if delete_order\(order_number\):) Tj T*
+(            self.display_message\() Tj T*
+(                self.bot_name,) Tj T*
+(                "Your order has been cancelled and deleted from the database.",) Tj T*
+(            \)) Tj T*
+(        else:) Tj T*
+(            self.display_message\(self.bot_name, "Order not found."\)) Tj T*
+() Tj T*
+() Tj T*
+(if __name__ == "__main__":) Tj T*
+(    root = tk.Tk\(\)) Tj T*
+(    chat_gui = ChatGUI\(root\)) Tj T*
+(    root.mainloop\(\)) Tj T*
+() Tj T*
+(==========================================================================================) Tj T*
+(db.py) Tj T*
+(==========================================================================================) Tj T*
+(import csv) Tj T*
+(import hashlib) Tj T*
+(import hmac) Tj T*
+(import os) Tj T*
+(import re) Tj T*
+(from datetime import datetime) Tj T*
+(import pyodbc) Tj T*
+ET
+endstream
+endobj
+33 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 32 0 R >>
+endobj
+34 0 obj
+<< /Length 3278 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+() Tj T*
+() Tj T*
+(DEFAULT_DRIVER = "ODBC Driver 18 for SQL Server") Tj T*
+(DEFAULT_ADMIN_USERNAME = "admin") Tj T*
+(DEFAULT_ADMIN_PASSWORD = "admin123") Tj T*
+(DEFAULT_ADMIN_ROLE = "admin") Tj T*
+(ORDER_NUMBER_PREFIX = "O_N") Tj T*
+(ORDER_NUMBER_DIGITS = 3) Tj T*
+() Tj T*
+() Tj T*
+(def _normalize_trust_cert\(conn_str\):) Tj T*
+(    normalized = conn_str.replace\() Tj T*
+(        "TrustServerCertificate=True",) Tj T*
+(        "TrustServerCertificate=yes",) Tj T*
+(    \)) Tj T*
+(    normalized = normalized.replace\() Tj T*
+(        "TrustServerCertificate=False",) Tj T*
+(        "TrustServerCertificate=no",) Tj T*
+(    \)) Tj T*
+(    return normalized) Tj T*
+() Tj T*
+() Tj T*
+(def _ensure_encrypt\(conn_str\):) Tj T*
+(    if "Encrypt=" in conn_str or "ENCRYPT=" in conn_str:) Tj T*
+(        return conn_str) Tj T*
+(    return f"{conn_str};Encrypt=yes") Tj T*
+() Tj T*
+() Tj T*
+(def _normalize_server\(conn_str\):) Tj T*
+(    if "Server=localhost" in conn_str and "Server=localhost," not in conn_str:) Tj T*
+(        return conn_str.replace\("Server=localhost", "Server=127.0.0.1,1433"\)) Tj T*
+(    return conn_str) Tj T*
+() Tj T*
+() Tj T*
+(def _parse_conn_str\(raw_conn_str\):) Tj T*
+(    parts = [p for p in raw_conn_str.split\(";"\) if p.strip\(\)]) Tj T*
+(    items = []) Tj T*
+(    for part in parts:) Tj T*
+(        if "=" in part:) Tj T*
+(            key, value = part.split\("=", 1\)) Tj T*
+(            items.append\(\(key.strip\(\), value.strip\(\)\)\)) Tj T*
+(        else:) Tj T*
+(            items.append\(\(part.strip\(\), ""\)\)) Tj T*
+(    return items) Tj T*
+() Tj T*
+() Tj T*
+(def _normalize_credentials\(raw_conn_str\):) Tj T*
+(    items = _parse_conn_str\(raw_conn_str\)) Tj T*
+(    normalized = []) Tj T*
+(    for key, value in items:) Tj T*
+(        key_lower = key.lower\(\)) Tj T*
+(        if key_lower in {"user id", "userid", "uid"}:) Tj T*
+(            normalized.append\(\("UID", value\)\)) Tj T*
+(        elif key_lower in {"password", "pwd"}:) Tj T*
+(            normalized.append\(\("PWD", value\)\)) Tj T*
+(        else:) Tj T*
+(            normalized.append\(\(key, value\)\)) Tj T*
+(    return ";".join\() Tj T*
+(        f"{k}={v}" if v != "" else k for k, v in normalized) Tj T*
+(    \)) Tj T*
+() Tj T*
+() Tj T*
+(def _build_odbc_conn_str\(raw_conn_str\):) Tj T*
+(    raw_conn_str = raw_conn_str.strip\(\)) Tj T*
+(    raw_conn_str = _normalize_trust_cert\(raw_conn_str\)) Tj T*
+(    raw_conn_str = _ensure_encrypt\(raw_conn_str\)) Tj T*
+(    raw_conn_str = _normalize_server\(raw_conn_str\)) Tj T*
+(    raw_conn_str = _normalize_credentials\(raw_conn_str\)) Tj T*
+(    if "Driver=" in raw_conn_str or "DRIVER=" in raw_conn_str:) Tj T*
+(        return raw_conn_str) Tj T*
+(    return f"Driver={{{DEFAULT_DRIVER}}};{raw_conn_str}") Tj T*
+() Tj T*
+() Tj T*
+(def get_connection\(\):) Tj T*
+(    raw = os.getenv\() Tj T*
+(        "MSSQL_CONNECTION_STRING",) Tj T*
+(        \() Tj T*
+(            "Server=127.0.0.1,1433;Database=ChatbotDb;User Id=sa;") Tj T*
+(            "Password=Ryen@123;TrustServerCertificate=yes;Encrypt=yes") Tj T*
+(        \),) Tj T*
+(    \)) Tj T*
+(    conn_str = _build_odbc_conn_str\(raw\)) Tj T*
+(    return pyodbc.connect\(conn_str\)) Tj T*
+() Tj T*
+() Tj T*
+(def init_db\(\):) Tj T*
+ET
+endstream
+endobj
+35 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 34 0 R >>
+endobj
+36 0 obj
+<< /Length 3849 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(    with get_connection\(\) as conn:) Tj T*
+(        cursor = conn.cursor\(\)) Tj T*
+(        cursor.execute\() Tj T*
+(            """) Tj T*
+(            IF OBJECT_ID\(N'dbo.orders', N'U'\) IS NULL) Tj T*
+(            BEGIN) Tj T*
+(                CREATE TABLE dbo.orders \() Tj T*
+(                    order_number NVARCHAR\(50\) NOT NULL PRIMARY KEY,) Tj T*
+(                    customer_email NVARCHAR\(255\) NOT NULL,) Tj T*
+(                    customer_address NVARCHAR\(500\) NOT NULL,) Tj T*
+(                    customer_name NVARCHAR\(255\) NULL,) Tj T*
+(                    status NVARCHAR\(100\) NOT NULL,) Tj T*
+(                    current_location NVARCHAR\(255\) NOT NULL,) Tj T*
+(                    expected_delivery_date DATE NULL,) Tj T*
+(                    product_id NVARCHAR\(50\) NULL,) Tj T*
+(                    product_name NVARCHAR\(255\) NULL,) Tj T*
+(                    quantity INT NOT NULL DEFAULT 1,) Tj T*
+(                    unit_price DECIMAL\(10, 2\) NULL,) Tj T*
+(                    total_price DECIMAL\(10, 2\) NULL) Tj T*
+(                \);) Tj T*
+(            END) Tj T*
+(            """) Tj T*
+(        \)) Tj T*
+(        cursor.execute\() Tj T*
+(            """) Tj T*
+(            IF COL_LENGTH\('dbo.orders', 'customer_name'\) IS NULL) Tj T*
+(            BEGIN) Tj T*
+(                ALTER TABLE dbo.orders ADD customer_name NVARCHAR\(255\) NULL;) Tj T*
+(            END) Tj T*
+(            """) Tj T*
+(        \)) Tj T*
+(        cursor.execute\() Tj T*
+(            """) Tj T*
+(            IF EXISTS \() Tj T*
+(                SELECT 1) Tj T*
+(                FROM sys.columns) Tj T*
+(                WHERE object_id = OBJECT_ID\(N'dbo.orders'\)) Tj T*
+(                  AND name = 'expected_delivery_date') Tj T*
+(                  AND is_nullable = 0) Tj T*
+(            \)) Tj T*
+(            BEGIN) Tj T*
+(                ALTER TABLE dbo.orders ALTER COLUMN expected_delivery_date DATE NULL;) Tj T*
+(            END) Tj T*
+(            """) Tj T*
+(        \)) Tj T*
+(        optional_columns = {) Tj T*
+(            "product_id": "NVARCHAR\(50\) NULL",) Tj T*
+(            "product_name": "NVARCHAR\(255\) NULL",) Tj T*
+(            "quantity": "INT NOT NULL CONSTRAINT DF_orders_quantity DEFAULT 1",) Tj T*
+(            "unit_price": "DECIMAL\(10, 2\) NULL",) Tj T*
+(            "total_price": "DECIMAL\(10, 2\) NULL",) Tj T*
+(        }) Tj T*
+(        for column, definition in optional_columns.items\(\):) Tj T*
+(            cursor.execute\() Tj T*
+(                f""") Tj T*
+(                IF COL_LENGTH\('dbo.orders', '{column}'\) IS NULL) Tj T*
+(                BEGIN) Tj T*
+(                    ALTER TABLE dbo.orders ADD {column} {definition};) Tj T*
+(                END) Tj T*
+(                """) Tj T*
+(            \)) Tj T*
+(        cursor.execute\() Tj T*
+(            """) Tj T*
+(            IF OBJECT_ID\(N'dbo.users', N'U'\) IS NULL) Tj T*
+(            BEGIN) Tj T*
+(                CREATE TABLE dbo.users \() Tj T*
+(                    user_id INT IDENTITY\(1,1\) NOT NULL PRIMARY KEY,) Tj T*
+(                    username NVARCHAR\(100\) NOT NULL UNIQUE,) Tj T*
+(                    password_hash NVARCHAR\(255\) NOT NULL,) Tj T*
+(                    role NVARCHAR\(50\) NOT NULL,) Tj T*
+(                    full_name NVARCHAR\(255\) NULL,) Tj T*
+(                    email NVARCHAR\(255\) NULL,) Tj T*
+(                    address NVARCHAR\(500\) NULL) Tj T*
+(                \);) Tj T*
+(            END) Tj T*
+(            """) Tj T*
+(        \)) Tj T*
+(        conn.commit\(\)) Tj T*
+(    seed_default_admin\(\)) Tj T*
+() Tj T*
+() Tj T*
+(def hash_password\(password\):) Tj T*
+(    salt = os.urandom\(16\)) Tj T*
+(    password_hash = hashlib.pbkdf2_hmac\() Tj T*
+(        "sha256",) Tj T*
+(        password.encode\("utf-8"\),) Tj T*
+ET
+endstream
+endobj
+37 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 36 0 R >>
+endobj
+38 0 obj
+<< /Length 3105 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(        salt,) Tj T*
+(        100000,) Tj T*
+(    \)) Tj T*
+(    return f"{salt.hex\(\)}:{password_hash.hex\(\)}") Tj T*
+() Tj T*
+() Tj T*
+(def verify_password\(password, stored_hash\):) Tj T*
+(    try:) Tj T*
+(        salt_hex, hash_hex = stored_hash.split\(":", 1\)) Tj T*
+(        expected_hash = bytes.fromhex\(hash_hex\)) Tj T*
+(        actual_hash = hashlib.pbkdf2_hmac\() Tj T*
+(            "sha256",) Tj T*
+(            password.encode\("utf-8"\),) Tj T*
+(            bytes.fromhex\(salt_hex\),) Tj T*
+(            100000,) Tj T*
+(        \)) Tj T*
+(        return hmac.compare_digest\(actual_hash, expected_hash\)) Tj T*
+(    except ValueError:) Tj T*
+(        return False) Tj T*
+() Tj T*
+() Tj T*
+(def seed_default_admin\(\):) Tj T*
+(    with get_connection\(\) as conn:) Tj T*
+(        cursor = conn.cursor\(\)) Tj T*
+(        cursor.execute\() Tj T*
+(            "SELECT 1 FROM dbo.users WHERE username = ?;",) Tj T*
+(            DEFAULT_ADMIN_USERNAME,) Tj T*
+(        \)) Tj T*
+(        if cursor.fetchone\(\):) Tj T*
+(            return) Tj T*
+() Tj T*
+(        cursor.execute\() Tj T*
+(            """) Tj T*
+(            INSERT INTO dbo.users) Tj T*
+(                \(username, password_hash, role, full_name, email\)) Tj T*
+(            VALUES \(?, ?, ?, ?, ?\);) Tj T*
+(            """,) Tj T*
+(            DEFAULT_ADMIN_USERNAME,) Tj T*
+(            hash_password\(DEFAULT_ADMIN_PASSWORD\),) Tj T*
+(            DEFAULT_ADMIN_ROLE,) Tj T*
+(            "Default Admin",) Tj T*
+(            "admin@example.com",) Tj T*
+(        \)) Tj T*
+(        conn.commit\(\)) Tj T*
+() Tj T*
+() Tj T*
+(def authenticate_user\(username, password\):) Tj T*
+(    with get_connection\(\) as conn:) Tj T*
+(        cursor = conn.cursor\(\)) Tj T*
+(        cursor.execute\() Tj T*
+(            """) Tj T*
+(            SELECT username, password_hash, role, full_name, email, address) Tj T*
+(            FROM dbo.users) Tj T*
+(            WHERE username = ?;) Tj T*
+(            """,) Tj T*
+(            username,) Tj T*
+(        \)) Tj T*
+(        row = cursor.fetchone\(\)) Tj T*
+(        if not row or not verify_password\(password, row.password_hash\):) Tj T*
+(            return None) Tj T*
+(        return {) Tj T*
+(            "username": row.username,) Tj T*
+(            "role": row.role,) Tj T*
+(            "full_name": row.full_name,) Tj T*
+(            "email": row.email,) Tj T*
+(            "address": row.address,) Tj T*
+(        }) Tj T*
+() Tj T*
+() Tj T*
+(def _is_table_empty\(\):) Tj T*
+(    with get_connection\(\) as conn:) Tj T*
+(        cursor = conn.cursor\(\)) Tj T*
+(        cursor.execute\("SELECT COUNT\(1\) FROM dbo.orders;"\)) Tj T*
+(        count = cursor.fetchone\(\)[0]) Tj T*
+(        return count == 0) Tj T*
+() Tj T*
+() Tj T*
+(def seed_from_csv\(csv_path="orders.csv"\):) Tj T*
+(    if not os.path.exists\(csv_path\):) Tj T*
+(        return) Tj T*
+(    if not _is_table_empty\(\):) Tj T*
+(        return) Tj T*
+() Tj T*
+(    rows = []) Tj T*
+(    with open\(csv_path, mode="r"\) as file:) Tj T*
+(        reader = csv.DictReader\(file\)) Tj T*
+ET
+endstream
+endobj
+39 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 38 0 R >>
+endobj
+40 0 obj
+<< /Length 3366 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(        for row in reader:) Tj T*
+(            parsed_date = _parse_order_date\(row.get\("expected_delivery_date"\)\)) Tj T*
+(            rows.append\() Tj T*
+(                \() Tj T*
+(                    row["order_number"],) Tj T*
+(                    row["customer_email"],) Tj T*
+(                    row["customer_address"],) Tj T*
+(                    row.get\("customer_name"\),) Tj T*
+(                    row["status"],) Tj T*
+(                    row["current_location"],) Tj T*
+(                    parsed_date,) Tj T*
+(                    row.get\("product_id"\),) Tj T*
+(                    row.get\("product_name"\),) Tj T*
+(                    int\(row.get\("quantity"\) or 1\),) Tj T*
+(                    row.get\("unit_price"\) or None,) Tj T*
+(                    row.get\("total_price"\) or None,) Tj T*
+(                \)) Tj T*
+(            \)) Tj T*
+() Tj T*
+(    if not rows:) Tj T*
+(        return) Tj T*
+() Tj T*
+(    with get_connection\(\) as conn:) Tj T*
+(        cursor = conn.cursor\(\)) Tj T*
+(        cursor.fast_executemany = True) Tj T*
+(        cursor.executemany\() Tj T*
+(            """) Tj T*
+(            INSERT INTO dbo.orders) Tj T*
+(                \() Tj T*
+(                    order_number,) Tj T*
+(                    customer_email,) Tj T*
+(                    customer_address,) Tj T*
+(                    customer_name,) Tj T*
+(                    status,) Tj T*
+(                    current_location,) Tj T*
+(                    expected_delivery_date,) Tj T*
+(                    product_id,) Tj T*
+(                    product_name,) Tj T*
+(                    quantity,) Tj T*
+(                    unit_price,) Tj T*
+(                    total_price) Tj T*
+(                \)) Tj T*
+(            VALUES \(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?\);) Tj T*
+(            """,) Tj T*
+(            rows,) Tj T*
+(        \)) Tj T*
+(        conn.commit\(\)) Tj T*
+() Tj T*
+() Tj T*
+(def _parse_order_date\(raw_date\):) Tj T*
+(    raw_date = \(raw_date or ""\).strip\(\)) Tj T*
+(    if not raw_date or raw_date.upper\(\) == "N/A":) Tj T*
+(        return None) Tj T*
+(    return datetime.strptime\(raw_date, "%d/%m/%Y"\).date\(\)) Tj T*
+() Tj T*
+() Tj T*
+(def fetch_order_info\(order_number\):) Tj T*
+(    with get_connection\(\) as conn:) Tj T*
+(        cursor = conn.cursor\(\)) Tj T*
+(        cursor.execute\() Tj T*
+(            """) Tj T*
+(            SELECT) Tj T*
+(                order_number,) Tj T*
+(                customer_email,) Tj T*
+(                customer_address,) Tj T*
+(                customer_name,) Tj T*
+(                status,) Tj T*
+(                current_location,) Tj T*
+(                expected_delivery_date,) Tj T*
+(                product_id,) Tj T*
+(                product_name,) Tj T*
+(                quantity,) Tj T*
+(                unit_price,) Tj T*
+(                total_price) Tj T*
+(            FROM dbo.orders) Tj T*
+(            WHERE order_number = ?;) Tj T*
+(            """,) Tj T*
+(            order_number,) Tj T*
+(        \)) Tj T*
+(        row = cursor.fetchone\(\)) Tj T*
+(        if not row:) Tj T*
+(            return None) Tj T*
+(        return {) Tj T*
+(            "order_number": row.order_number,) Tj T*
+(            "customer_email": row.customer_email,) Tj T*
+(            "customer_address": row.customer_address,) Tj T*
+ET
+endstream
+endobj
+41 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 40 0 R >>
+endobj
+42 0 obj
+<< /Length 3261 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(            "customer_name": getattr\(row, "customer_name", None\),) Tj T*
+(            "status": row.status,) Tj T*
+(            "current_location": row.current_location,) Tj T*
+(            "expected_delivery_date": str\(row.expected_delivery_date\),) Tj T*
+(            "product_id": getattr\(row, "product_id", None\),) Tj T*
+(            "product_name": getattr\(row, "product_name", None\),) Tj T*
+(            "quantity": getattr\(row, "quantity", None\),) Tj T*
+(            "unit_price": getattr\(row, "unit_price", None\),) Tj T*
+(            "total_price": getattr\(row, "total_price", None\),) Tj T*
+(        }) Tj T*
+() Tj T*
+() Tj T*
+(def verify_customer_email\(order_number, customer_email\):) Tj T*
+(    with get_connection\(\) as conn:) Tj T*
+(        cursor = conn.cursor\(\)) Tj T*
+(        cursor.execute\() Tj T*
+(            """) Tj T*
+(            SELECT 1) Tj T*
+(            FROM dbo.orders) Tj T*
+(            WHERE order_number = ? AND customer_email = ?;) Tj T*
+(            """,) Tj T*
+(            order_number,) Tj T*
+(            customer_email,) Tj T*
+(        \)) Tj T*
+(        return cursor.fetchone\(\) is not None) Tj T*
+() Tj T*
+() Tj T*
+(def fetch_customer_address\(email\):) Tj T*
+(    with get_connection\(\) as conn:) Tj T*
+(        cursor = conn.cursor\(\)) Tj T*
+(        cursor.execute\() Tj T*
+(            """) Tj T*
+(            SELECT customer_address) Tj T*
+(            FROM dbo.orders) Tj T*
+(            WHERE customer_email = ?;) Tj T*
+(            """,) Tj T*
+(            email,) Tj T*
+(        \)) Tj T*
+(        row = cursor.fetchone\(\)) Tj T*
+(        return row.customer_address if row else None) Tj T*
+() Tj T*
+() Tj T*
+(def update_address\(order_number, new_address\):) Tj T*
+(    with get_connection\(\) as conn:) Tj T*
+(        cursor = conn.cursor\(\)) Tj T*
+(        cursor.execute\() Tj T*
+(            """) Tj T*
+(            UPDATE dbo.orders) Tj T*
+(            SET customer_address = ?) Tj T*
+(            WHERE order_number = ?;) Tj T*
+(            """,) Tj T*
+(            new_address,) Tj T*
+(            order_number,) Tj T*
+(        \)) Tj T*
+(        conn.commit\(\)) Tj T*
+() Tj T*
+() Tj T*
+(def update_order_status\(order_number, status, current_location=None\):) Tj T*
+(    with get_connection\(\) as conn:) Tj T*
+(        cursor = conn.cursor\(\)) Tj T*
+(        if current_location:) Tj T*
+(            cursor.execute\() Tj T*
+(                """) Tj T*
+(                UPDATE dbo.orders) Tj T*
+(                SET status = ?, current_location = ?) Tj T*
+(                WHERE order_number = ?;) Tj T*
+(                """,) Tj T*
+(                status,) Tj T*
+(                current_location,) Tj T*
+(                order_number,) Tj T*
+(            \)) Tj T*
+(        else:) Tj T*
+(            cursor.execute\() Tj T*
+(                """) Tj T*
+(                UPDATE dbo.orders) Tj T*
+(                SET status = ?) Tj T*
+(                WHERE order_number = ?;) Tj T*
+(                """,) Tj T*
+(                status,) Tj T*
+(                order_number,) Tj T*
+(            \)) Tj T*
+(        updated_count = cursor.rowcount) Tj T*
+(        conn.commit\(\)) Tj T*
+(        return updated_count > 0) Tj T*
+() Tj T*
+() Tj T*
+ET
+endstream
+endobj
+43 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 42 0 R >>
+endobj
+44 0 obj
+<< /Length 3092 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(def delete_order\(order_number\):) Tj T*
+(    with get_connection\(\) as conn:) Tj T*
+(        cursor = conn.cursor\(\)) Tj T*
+(        cursor.execute\() Tj T*
+(            """) Tj T*
+(            DELETE FROM dbo.orders) Tj T*
+(            WHERE order_number = ?;) Tj T*
+(            """,) Tj T*
+(            order_number,) Tj T*
+(        \)) Tj T*
+(        deleted_count = cursor.rowcount) Tj T*
+(        conn.commit\(\)) Tj T*
+(        return deleted_count > 0) Tj T*
+() Tj T*
+() Tj T*
+(def generate_order_number\(\):) Tj T*
+(    with get_connection\(\) as conn:) Tj T*
+(        cursor = conn.cursor\(\)) Tj T*
+(        return _generate_order_number\(cursor\)) Tj T*
+() Tj T*
+() Tj T*
+(def _generate_order_number\(cursor\):) Tj T*
+(    pattern = f"{ORDER_NUMBER_PREFIX}%") Tj T*
+(    regex = re.compile\(rf"^{re.escape\(ORDER_NUMBER_PREFIX\)}\(\\d+\)$"\)) Tj T*
+() Tj T*
+(    cursor.execute\() Tj T*
+(        """) Tj T*
+(        SELECT order_number) Tj T*
+(        FROM dbo.orders) Tj T*
+(        WHERE order_number LIKE ?;) Tj T*
+(        """,) Tj T*
+(        pattern,) Tj T*
+(    \)) Tj T*
+() Tj T*
+(    highest_number = 0) Tj T*
+(    for row in cursor.fetchall\(\):) Tj T*
+(        match = regex.match\(row.order_number\)) Tj T*
+(        if match:) Tj T*
+(            highest_number = max\(highest_number, int\(match.group\(1\)\)\)) Tj T*
+() Tj T*
+(    next_number = highest_number + 1) Tj T*
+(    return f"{ORDER_NUMBER_PREFIX}{next_number:0{ORDER_NUMBER_DIGITS}d}") Tj T*
+() Tj T*
+() Tj T*
+(def create_order\() Tj T*
+(    customer_email,) Tj T*
+(    customer_address,) Tj T*
+(    status,) Tj T*
+(    current_location,) Tj T*
+(    expected_delivery_date=None,) Tj T*
+(    customer_name=None,) Tj T*
+(    product_id=None,) Tj T*
+(    product_name=None,) Tj T*
+(    quantity=1,) Tj T*
+(    unit_price=None,) Tj T*
+(    total_price=None,) Tj T*
+(    order_number=None,) Tj T*
+(\):) Tj T*
+(    parsed_date = _parse_order_date\(expected_delivery_date\)) Tj T*
+(    with get_connection\(\) as conn:) Tj T*
+(        cursor = conn.cursor\(\)) Tj T*
+(        order_number = order_number or _generate_order_number\(cursor\)) Tj T*
+(        cursor.execute\() Tj T*
+(            "SELECT 1 FROM dbo.orders WHERE order_number = ?;",) Tj T*
+(            order_number,) Tj T*
+(        \)) Tj T*
+(        if cursor.fetchone\(\):) Tj T*
+(            return False, "Order number already exists.") Tj T*
+() Tj T*
+(        cursor.execute\() Tj T*
+(            """) Tj T*
+(            INSERT INTO dbo.orders) Tj T*
+(                \() Tj T*
+(                    order_number,) Tj T*
+(                    customer_email,) Tj T*
+(                    customer_address,) Tj T*
+(                    customer_name,) Tj T*
+(                    status,) Tj T*
+(                    current_location,) Tj T*
+(                    expected_delivery_date,) Tj T*
+(                    product_id,) Tj T*
+(                    product_name,) Tj T*
+(                    quantity,) Tj T*
+(                    unit_price,) Tj T*
+(                    total_price) Tj T*
+(                \)) Tj T*
+ET
+endstream
+endobj
+45 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 44 0 R >>
+endobj
+46 0 obj
+<< /Length 3170 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(            VALUES \(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?\);) Tj T*
+(            """,) Tj T*
+(            order_number,) Tj T*
+(            customer_email,) Tj T*
+(            customer_address,) Tj T*
+(            customer_name,) Tj T*
+(            status,) Tj T*
+(            current_location,) Tj T*
+(            parsed_date,) Tj T*
+(            product_id,) Tj T*
+(            product_name,) Tj T*
+(            quantity,) Tj T*
+(            unit_price,) Tj T*
+(            total_price,) Tj T*
+(        \)) Tj T*
+(        conn.commit\(\)) Tj T*
+(        return True, f"Order created. Order number: {order_number}") Tj T*
+() Tj T*
+(==========================================================================================) Tj T*
+(product_catalog.py) Tj T*
+(==========================================================================================) Tj T*
+(import csv) Tj T*
+(import os) Tj T*
+() Tj T*
+() Tj T*
+(PRODUCTS_CSV = "products.csv") Tj T*
+() Tj T*
+() Tj T*
+(def load_products\(csv_path=PRODUCTS_CSV\):) Tj T*
+(    if not os.path.exists\(csv_path\):) Tj T*
+(        return []) Tj T*
+() Tj T*
+(    with open\(csv_path, mode="r"\) as file:) Tj T*
+(        return list\(csv.DictReader\(file\)\)) Tj T*
+() Tj T*
+() Tj T*
+(def get_product_by_id\(product_id, csv_path=PRODUCTS_CSV\):) Tj T*
+(    product_id = \(product_id or ""\).strip\(\).lower\(\)) Tj T*
+(    for product in load_products\(csv_path\):) Tj T*
+(        if product["product_id"].lower\(\) == product_id:) Tj T*
+(            return product) Tj T*
+(    return None) Tj T*
+() Tj T*
+() Tj T*
+(def format_product\(product\):) Tj T*
+(    return \() Tj T*
+(        f"{product['product_id']} - {product['name']} | ") Tj T*
+(        f"{product['color']} | {product['size']} | ") Tj T*
+(        f"${product['price']} | Stock: {product['stock']}") Tj T*
+(    \)) Tj T*
+() Tj T*
+() Tj T*
+(def format_product_list\(products\):) Tj T*
+(    if not products:) Tj T*
+(        return "No products are available right now.") Tj T*
+(    return "\\n".join\(format_product\(product\) for product in products\)) Tj T*
+() Tj T*
+(==========================================================================================) Tj T*
+(generate_response.py) Tj T*
+(==========================================================================================) Tj T*
+(import time) Tj T*
+() Tj T*
+(from chatbot_engine import ChatbotEngine) Tj T*
+() Tj T*
+() Tj T*
+(def generate_response\(tag, engine, bot_name\):) Tj T*
+(    response = engine.get_response_text\(tag\)) Tj T*
+(    return f"{bot_name}: {response}") Tj T*
+() Tj T*
+() Tj T*
+(if __name__ == "__main__":) Tj T*
+(    try:) Tj T*
+(        engine = ChatbotEngine.from_files\("data.pth", "intents.json"\)) Tj T*
+(    except Exception as e:) Tj T*
+(        print\(f"Error loading chatbot model: {e}"\)) Tj T*
+(        raise SystemExit) Tj T*
+() Tj T*
+(    test_queries = []) Tj T*
+(    for intent in engine.intents["intents"]:) Tj T*
+(        test_queries.extend\(intent.get\("queries", []\)\)) Tj T*
+() Tj T*
+(    total_queries = len\(test_queries\)) Tj T*
+(    total_correct = 0) Tj T*
+(    total_wrong = 0) Tj T*
+(    total_time = 0) Tj T*
+() Tj T*
+ET
+endstream
+endobj
+47 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 46 0 R >>
+endobj
+48 0 obj
+<< /Length 3818 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(    bot_name = "Lyla") Tj T*
+(    print\("Response Generation Test Results:"\)) Tj T*
+() Tj T*
+(    for query in test_queries:) Tj T*
+(        start_time = time.time\(\)) Tj T*
+(        tag, _probability = engine.predict\(query\)) Tj T*
+(        response = generate_response\(tag, engine, bot_name\)) Tj T*
+(        response_time = time.time\(\) - start_time) Tj T*
+(        total_time += response_time) Tj T*
+() Tj T*
+(        print\(f"Query: {query}"\)) Tj T*
+(        print\(f"{response} \(Response time: {response_time:.4f} seconds\)"\)) Tj T*
+(        user_input = input\("Press Enter if correct, Space if wrong: "\)) Tj T*
+(        if user_input == "":) Tj T*
+(            total_correct += 1) Tj T*
+(        elif user_input == " ":) Tj T*
+(            total_wrong += 1) Tj T*
+(        else:) Tj T*
+(            print\("Invalid input. Skipping..."\)) Tj T*
+(        print\(\)) Tj T*
+() Tj T*
+(    print\("\\nSummary:"\)) Tj T*
+(    print\(f"Total Queries: {total_queries}"\)) Tj T*
+(    print\(f"Total Correct: {total_correct}"\)) Tj T*
+(    print\(f"Total Wrong: {total_wrong}"\)) Tj T*
+(    if total_queries:) Tj T*
+(        print\(f"Average Response Time: {total_time / total_queries:.4f} seconds"\)) Tj T*
+() Tj T*
+(==========================================================================================) Tj T*
+(intent_response.py) Tj T*
+(==========================================================================================) Tj T*
+(from chatbot_engine import ChatbotEngine) Tj T*
+() Tj T*
+() Tj T*
+(if __name__ == "__main__":) Tj T*
+(    try:) Tj T*
+(        engine = ChatbotEngine.from_files\("data.pth", "intents.json"\)) Tj T*
+(    except Exception as e:) Tj T*
+(        print\(f"Error loading chatbot model: {e}"\)) Tj T*
+(        raise SystemExit) Tj T*
+() Tj T*
+(    total_intents = len\(engine.intents["intents"]\)) Tj T*
+(    total_correct = 0) Tj T*
+(    total_wrong = 0) Tj T*
+() Tj T*
+(    print\("Intent Recognition Test Results:"\)) Tj T*
+(    for intent in engine.intents["intents"]:) Tj T*
+(        print\(f"Intent: {intent['tag']}"\)) Tj T*
+(        for query in intent.get\("queries", []\):) Tj T*
+(            predicted_intent, _probability = engine.predict\(query\)) Tj T*
+(            print\(f"Query: {query}"\)) Tj T*
+(            print\(f"Predicted Intent: {predicted_intent}"\)) Tj T*
+(            user_input = input\("Press Enter if correct, Space if wrong: "\)) Tj T*
+(            if user_input == "":) Tj T*
+(                total_correct += 1) Tj T*
+(            elif user_input == " ":) Tj T*
+(                total_wrong += 1) Tj T*
+(            else:) Tj T*
+(                print\("Invalid input. Skipping..."\)) Tj T*
+(            print\(\)) Tj T*
+() Tj T*
+(    print\("\\nSummary:"\)) Tj T*
+(    print\(f"Total Tags: {total_intents}"\)) Tj T*
+(    print\(f"Total Correct: {total_correct}"\)) Tj T*
+(    print\(f"Total Wrong: {total_wrong}"\)) Tj T*
+() Tj T*
+(==========================================================================================) Tj T*
+(intents.json) Tj T*
+(==========================================================================================) Tj T*
+() Tj T*
+({) Tj T*
+(  "intents": [) Tj T*
+(  {) Tj T*
+(    "tag": "greeting",) Tj T*
+(    "queries": ["Hi", "Hey", "How are you", "Is anyone there?", "Hello", "Good day"],) Tj T*
+(    "responses": ["Hey :-\)", "Hello, thanks for visiting", "Hi there, what can I do for you?", "Hi there, how can I ) Tj T*
+(help?"]) Tj T*
+(  },) Tj T*
+(  {) Tj T*
+(    "tag": "goodbye",) Tj T*
+(    "queries": ["Bye", "See you later", "Goodbye", "Farewell", "Take care"],) Tj T*
+(    "responses": ["See you later, thanks for visiting", "Have a nice day", "Bye! Come back again soon.", "Goodbye! ) Tj T*
+(Stay safe."]) Tj T*
+(  },) Tj T*
+(  {) Tj T*
+(    "tag": "thanks",) Tj T*
+ET
+endstream
+endobj
+49 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 48 0 R >>
+endobj
+50 0 obj
+<< /Length 4781 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(    "queries": ["Thanks", "Thank you", "That's helpful", "Thank's a lot!", "I appreciate it"],) Tj T*
+(    "responses": ["Happy to help!", "Any time!", "My pleasure", "You're welcome!", "Glad I could assist!"]) Tj T*
+(  },) Tj T*
+(  {) Tj T*
+(    "tag": "items",) Tj T*
+(    "queries": [) Tj T*
+(      "Which items do you have?",) Tj T*
+(      "What kinds of items are there?",) Tj T*
+(      "What do you sell?",) Tj T*
+(      "What products do you have?",) Tj T*
+(      "What products do you offer?",) Tj T*
+(      "Can you tell me about your range of products?",) Tj T*
+(      "What kind of items do you sell?",) Tj T*
+(      "Do you have a catalog or list of products?",) Tj T*
+(      "What are your best-selling products?",) Tj T*
+(      "Can you describe your product lineup?",) Tj T*
+(      "What types of services do you provide?",) Tj T*
+(      "What's in stock at your store?",) Tj T*
+(      "Can you recommend some products you offer?",) Tj T*
+(      "what do you offer?",) Tj T*
+(      "show products",) Tj T*
+(      "show me products",) Tj T*
+(      "list products",) Tj T*
+(      "show product catalog",) Tj T*
+(      "what products are available?",) Tj T*
+(      "I want to see products") Tj T*
+(    ],) Tj T*
+(    "responses": [) Tj T*
+(      "We offer coffee mugs in red, white, and blue colors. They're perfect for enjoying your favorite hot ) Tj T*
+(beverages!",) Tj T*
+(      "We have a variety of coffee mugs available in red, white, and blue. They come in different sizes and designs to) Tj T*
+( suit your preferences.",) Tj T*
+(      "Our coffee mugs are available in classic colors like red, white, and blue. They're durable, stylish, and great ) Tj T*
+(for everyday use.",) Tj T*
+(      "We sell high-quality coffee mugs in red, white, and blue colors. They're microwave and dishwasher safe for your) Tj T*
+( convenience.",) Tj T*
+(      "You'll love our selection of coffee mugs! We have them in vibrant red, crisp white, and patriotic blue ) Tj T*
+(colors.",) Tj T*
+(      "Our coffee mugs come in a trio of colors: red, white, and blue. They make excellent gifts or additions to your ) Tj T*
+(own collection.",) Tj T*
+(      "We offer coffee mugs in red, white, and blue shades. They're made from premium materials and designed for both ) Tj T*
+(style and functionality.",) Tj T*
+(      "Whether you prefer red, white, or blue, we've got you covered with our range of coffee mugs. They're both ) Tj T*
+(stylish and practical for everyday use.",) Tj T*
+(      "Our coffee mugs are available in three classic colors: red, white, and blue. They're perfect for enjoying a cup) Tj T*
+( of coffee or tea any time of the day.",) Tj T*
+(      "We have a great selection of coffee mugs in red, white, and blue. They're ideal for home or office use and make) Tj T*
+( a wonderful addition to any kitchen.") Tj T*
+(    ]) Tj T*
+(  },) Tj T*
+(  {) Tj T*
+(    "tag": "payments",) Tj T*
+(    "queries": [) Tj T*
+(      "Do you take credit cards?",) Tj T*
+(      "Do you accept Mastercard?",) Tj T*
+(      "Can I pay with Paypal?",) Tj T*
+(      "Are you cash only?",) Tj T*
+(      "What payment methods do you accept?",) Tj T*
+(      "How can I pay?",) Tj T*
+(      "Accepted payment options?",) Tj T*
+(      "Payment methods?",) Tj T*
+(      "Can I use Apple Pay?",) Tj T*
+(      "Do you accept online payments?",) Tj T*
+(      "Do you support Visa payments?",) Tj T*
+(      "Can I use American Express for payment?",) Tj T*
+(      "Is Google Pay accepted?",) Tj T*
+(      "Do you offer installment payments?",) Tj T*
+(      "Are debit cards accepted?",) Tj T*
+(      "Can I pay with a bank transfer?",) Tj T*
+(      "Do you accept mobile payments?",) Tj T*
+(      "Are there any additional fees for online payments?",) Tj T*
+(      "Is PayPal the only online payment option?",) Tj T*
+(      "Do you offer payment plans or financing options?") Tj T*
+(    ],) Tj T*
+(    "responses": [) Tj T*
+(      "We accept VISA, Mastercard, and Paypal",) Tj T*
+(      "We accept most major credit cards, and Paypal",) Tj T*
+(      "We accept major cards like Visa, Mastercard, and American Express",) Tj T*
+(      "You can use major cards like Visa, Mastercard, and American Express for seamless transactions",) Tj T*
+(      "Most credits cards, Visa and Mastercards are accepted",) Tj T*
+(      "You may use Paypal or any major credit card, Visa and Mastercard for purchase",) Tj T*
+(      "We accept major card brands like Visa, Mastercard, and American Express, allowing for easy and secure ) Tj T*
+(transactions.",) Tj T*
+(      "Currently, we accept VISA, Mastercard, American Express, and Paypal. We also offer secure online payment ) Tj T*
+(options.",) Tj T*
+(      "Yes, we accept Apple Pay, along with major credit cards and Paypal.",) Tj T*
+ET
+endstream
+endobj
+51 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 50 0 R >>
+endobj
+52 0 obj
+<< /Length 3875 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(      "We accept online payments through our secure checkout process. You can use major credit cards, Paypal, and ) Tj T*
+(Apple Pay.") Tj T*
+(    ]) Tj T*
+(  },) Tj T*
+(  {) Tj T*
+(    "tag": "delivery",) Tj T*
+(    "queries": [) Tj T*
+(      "How long does delivery take?",) Tj T*
+(      "How long does shipping take?",) Tj T*
+(      "When do I get my delivery?",) Tj T*
+(      "How can I track my order?",) Tj T*
+(      "Shipping details?",) Tj T*
+(      "Delivery time?",) Tj T*
+(      "Tracking my package?",) Tj T*
+(      "How long does it take",) Tj T*
+(      "What is the estimated delivery time?",) Tj T*
+(      "When will my package arrive?",) Tj T*
+(      "Can I check the shipping status?",) Tj T*
+(      "How can I monitor my shipment?",) Tj T*
+(      "Do you provide tracking information?",) Tj T*
+(      "When should I expect my order?",) Tj T*
+(      "How can I find my order status?",) Tj T*
+(      "Is express shipping available?",) Tj T*
+(      "deliver",) Tj T*
+(      "how fast can you deliver?") Tj T*
+(    ],) Tj T*
+(    "responses": [) Tj T*
+(      "Delivery takes 2-4 days",) Tj T*
+(      "Shipping takes 2-4 days",) Tj T*
+(      "Your order will arrive within 2-4 business days.",) Tj T*
+(      "The estimated delivery time is 2-4 business days. You will receive a tracking number to monitor the progress of) Tj T*
+( your order.") Tj T*
+(    ]) Tj T*
+(      },) Tj T*
+(      {) Tj T*
+(        "tag": "shippable_cities",) Tj T*
+(        "queries": [) Tj T*
+(          "Do you ship to Beijing?",) Tj T*
+(          "Can you deliver to Shanghai?",) Tj T*
+(          "Is shipping available in Guangzhou?",) Tj T*
+(          "Can I receive my order in Shenzhen?",) Tj T*
+(          "Do you offer delivery to Hangzhou?",) Tj T*
+(          "shanghai",) Tj T*
+(          "guangzhou",) Tj T*
+(          "shenzhen") Tj T*
+(        ],) Tj T*
+(        "responses": [) Tj T*
+(          "Yes, we ship to your city",) Tj T*
+(          "Certainly! We deliver to your city.",) Tj T*
+(          "Shipping is available in your city.",) Tj T*
+(          "You can receive your order in your city.",) Tj T*
+(          "Yes, we offer delivery to your city.") Tj T*
+(        ]) Tj T*
+(      },) Tj T*
+(      {) Tj T*
+(        "tag": "non_shippable_cities",) Tj T*
+(        "queries": [) Tj T*
+(          "Can I get my order in Lhasa?",) Tj T*
+(          "Do you ship to Urumqi?",) Tj T*
+(          "Is delivery available in Lanzhou?",) Tj T*
+(          "Can I receive my purchase in Kunming?",) Tj T*
+(          "Do you offer shipping to Hohhot?") Tj T*
+(        ],) Tj T*
+(        "responses": [) Tj T*
+(          "I'm sorry, we currently do not ship to Lto your city.",) Tj T*
+(          "Unfortunately, we do not deliver to your city.",) Tj T*
+(          "Delivery is not available in your city.",) Tj T*
+(          "We do not offer shipping to your city.",) Tj T*
+(          "Sorry, we currently do not ship to your city.") Tj T*
+(        ]) Tj T*
+(      },) Tj T*
+(      {) Tj T*
+(        "tag": "funny",) Tj T*
+(        "queries": ["Tell me a joke!", "Tell me something funny!", "Do you know a joke?", "Got any jokes?"],) Tj T*
+(        "responses": ["Why did the hipster burn his mouth? He drank the coffee before it was cool.", "What did the ) Tj T*
+(buffalo say when his son left for college? Bison."]) Tj T*
+(      },) Tj T*
+(      {"tag": "update_address",) Tj T*
+(      "queries": [) Tj T*
+(      "I don't know how to update my delivery address",) Tj T*
+(      " I do not know how to submit a different delivery address",) Tj T*
+(      "how to edit the address?",) Tj T*
+(      "where can I set the delivery address up?",) Tj T*
+(      "I do not know how to submit a different delivery address",) Tj T*
+(      "I need assistance with a shipping address update",) Tj T*
+(      "I'm trying to set up another shipping address",) Tj T*
+ET
+endstream
+endobj
+53 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 52 0 R >>
+endobj
+54 0 obj
+<< /Length 4260 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(      "want help updating the address",) Tj T*
+(      "can you help me to set a shipping address up?",) Tj T*
+(      " I need to submit the new delivery address",) Tj T*
+(      "How can I change my shipping address?",) Tj T*
+(      "I want to update my delivery details",) Tj T*
+(      "Can I modify the address for my order?",) Tj T*
+(      "Where can I change my delivery address?",) Tj T*
+(      "I need to correct my shipping information",) Tj T*
+(      "How do I edit my delivery address?",) Tj T*
+(      "I want to set a new shipping address",) Tj T*
+(      "Can you guide me through updating my address?",) Tj T*
+(      "I need to alter the delivery address",) Tj T*
+(      "How to update the shipping details?",) Tj T*
+(      "how to update it?",) Tj T*
+(      "update") Tj T*
+(       ],) Tj T*
+(        "responses": [) Tj T*
+(      "I can help you with that.",) Tj T*
+(      "Sure, let me assist you with that",) Tj T*
+(      "I can help you change it") Tj T*
+() Tj T*
+(    ]) Tj T*
+(    },) Tj T*
+(    {"tag": "sizes",) Tj T*
+(    "queries": [) Tj T*
+(      "What sizes are available?",) Tj T*
+(      "Do you offer different sizes?",) Tj T*
+(      "What size are the mugs?",) Tj T*
+(      "Can I choose the size of the coffee mugs?",) Tj T*
+(      "Are the mugs available in different sizes?",) Tj T*
+(      "in what color") Tj T*
+(    ],) Tj T*
+(    "responses": [) Tj T*
+(      "Our coffee mugs come in standard sizes that are perfect for everyday use.",) Tj T*
+(      "We offer coffee mugs in various sizes to suit your needs.",) Tj T*
+(      "You can choose from our range of coffee mugs available in different sizes.",) Tj T*
+(      "Our coffee mugs are available in standard sizes suitable for all preferences.",) Tj T*
+(      "We provide coffee mugs in sizes that cater to both small and large preferences.") Tj T*
+(    ]) Tj T*
+(  },) Tj T*
+(  {) Tj T*
+(    "tag": "material",) Tj T*
+(    "queries": [) Tj T*
+(      "What are the mugs made of?",) Tj T*
+(      "Are the mugs ceramic or porcelain?",) Tj T*
+(      "What material are the coffee mugs?",) Tj T*
+(      "Are the mugs dishwasher safe?",) Tj T*
+(      "Can you tell me about the material of the mugs?",) Tj T*
+(      "What kind of material are the mugs made from?",) Tj T*
+(      "Are the mugs made of high-quality material?",) Tj T*
+(      "What are the mugs constructed of?",) Tj T*
+(      "Are the mugs microwave-safe?",) Tj T*
+(      "Can you provide information about the mug material?",) Tj T*
+(      "What is the composition of the coffee mugs?",) Tj T*
+(      "Are the mugs eco-friendly?",) Tj T*
+(      "Do the mugs contain any harmful substances?",) Tj T*
+(      "What is the durability of the mug material?",) Tj T*
+(      "Are the mugs lead-free?") Tj T*
+(    ],) Tj T*
+(    "responses": [) Tj T*
+(      "Our coffee mugs are made of high-quality ceramic material.",) Tj T*
+(      "We offer coffee mugs crafted from durable and dishwasher-safe ceramic.",) Tj T*
+(      "Our coffee mugs are made from premium ceramic material, ensuring longevity and durability.",) Tj T*
+(      "The coffee mugs we sell are both microwave and dishwasher safe, made from quality ceramic.",) Tj T*
+(      "Our coffee mugs are crafted from ceramic material, making them both stylish and durable.") Tj T*
+(    ]) Tj T*
+(  },) Tj T*
+(  {) Tj T*
+(    "tag": "care_instructions",) Tj T*
+(    "queries": [) Tj T*
+(      "How do I care for the mugs?",) Tj T*
+(      "Are the mugs microwave safe?",) Tj T*
+(      "Can I put the mugs in the dishwasher?",) Tj T*
+(      "Do the mugs require special care?",) Tj T*
+(      "Can you provide care instructions for the mugs?") Tj T*
+(    ],) Tj T*
+(    "responses": [) Tj T*
+(      "To ensure the longevity of your coffee mugs, we recommend hand washing them.",) Tj T*
+(      "Our coffee mugs are microwave and dishwasher safe for your convenience.",) Tj T*
+(      "We recommend hand washing the mugs to maintain their quality and appearance.",) Tj T*
+(      "The mugs are both microwave and dishwasher safe, making them easy to care for.",) Tj T*
+(      "For best results, we suggest hand washing the mugs to preserve their vibrant colors and design.") Tj T*
+(    ]) Tj T*
+(  },) Tj T*
+(  {) Tj T*
+(    "tag": "gifts",) Tj T*
+ET
+endstream
+endobj
+55 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 54 0 R >>
+endobj
+56 0 obj
+<< /Length 4094 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(    "queries": [) Tj T*
+(      "Are the mugs suitable as gifts?",) Tj T*
+(      "Can I gift the coffee mugs?",) Tj T*
+(      "Do you offer gift wrapping?",) Tj T*
+(      "Are gift options available for the mugs?",) Tj T*
+(      "Can the mugs be shipped as gifts?",) Tj T*
+(      "Are the mugs gift-ready?",) Tj T*
+(      "Can I purchase the mugs as presents?",) Tj T*
+(      "Do you provide gift messages with the mugs?",) Tj T*
+(      "Are there any gift sets available with the mugs?",) Tj T*
+(      "Can I personalize the mugs for gifting?",) Tj T*
+(      "Do you offer gift certificates for the mugs?",) Tj T*
+(      "Are the mugs suitable for special occasions?",) Tj T*
+(      "Can I include a gift note with the mugs?",) Tj T*
+(      "Do you have any special packaging for gifting?",) Tj T*
+(      "Are there any discounts or promotions for gifting mugs?") Tj T*
+(    ],) Tj T*
+(    "responses": [) Tj T*
+(      "Our coffee mugs make excellent gifts for any occasion, available in various colors to suit everyone's taste.",) Tj T*
+(      "You can gift our stylish coffee mugs, available in red, white, and blue colors.",) Tj T*
+(      "We offer gift wrapping options for our coffee mugs to make your gift extra special.",) Tj T*
+(      "Our coffee mugs come in a beautiful packaging, making them perfect gifts for friends and family.",) Tj T*
+(      "You can easily gift our coffee mugs, and we provide gift wrapping options to enhance the presentation.") Tj T*
+(    ]) Tj T*
+(  },) Tj T*
+(  {) Tj T*
+(    "tag": "user_preferences_personalization",) Tj T*
+(    "queries": [) Tj T*
+(      "Can I customize this?",) Tj T*
+(      "Do you have this in my size/color?",) Tj T*
+(      "Can I personalize my order?",) Tj T*
+(      "Can I choose a different color?",) Tj T*
+(      "Is customization available?",) Tj T*
+(      "Do you offer personalization options?",) Tj T*
+(      "Can I select a custom design?",) Tj T*
+(      "Is there an option to customize the mug?",) Tj T*
+(      "Can I choose my preferred design/color?",) Tj T*
+(      "Do you have a customization service?",) Tj T*
+(      "Can I personalize the mug with a name or message?",) Tj T*
+(      "Is there a way to customize the product?",) Tj T*
+(      "Do you offer color choices for the mugs?",) Tj T*
+(      "Can I add a custom logo or image?",) Tj T*
+(      "Is it possible to personalize the order details?",) Tj T*
+(      "customize",) Tj T*
+(      "personalize") Tj T*
+(    ],) Tj T*
+(    "responses": [) Tj T*
+(      "Certainly! You can customize your order as per your preferences.",) Tj T*
+(      "Yes, we have a range of sizes and colors available.",) Tj T*
+(      "Absolutely, you can personalize your order to suit your preferences.",) Tj T*
+(      "Yes, you can choose from our available colors.",) Tj T*
+(      "Yes, customization options are available for your order.") Tj T*
+(    ]) Tj T*
+(  },) Tj T*
+(  {) Tj T*
+(    "tag": "negation_reversal",) Tj T*
+(    "queries": [) Tj T*
+(      "I changed my mind.",) Tj T*
+(      "Not interested anymore.",) Tj T*
+(      "Cancel that.",) Tj T*
+(      "I'll pass on that.",) Tj T*
+(      "I've decided against it.") Tj T*
+(    ],) Tj T*
+(    "responses": [) Tj T*
+(      "No problem! Let me know if you change your mind again.",) Tj T*
+(      "Alright, let me know if you reconsider.",) Tj T*
+(      "Sure, I've cancelled that for you.",) Tj T*
+(      "Alright, let me know if you need anything else.",) Tj T*
+(      "Okay, feel free to reach out if you change your mind.") Tj T*
+(    ]) Tj T*
+(  },) Tj T*
+(  {) Tj T*
+(    "tag": "order_status",) Tj T*
+(    "queries": [) Tj T*
+(    "Where is my order?", ) Tj T*
+(    "What's the status of my order?",) Tj T*
+(    "Has my order been shipped?", ) Tj T*
+(    "When will my order arrive?", ) Tj T*
+(    "Track my order",) Tj T*
+(    "track order",) Tj T*
+(    "i would like to track my order",) Tj T*
+(    "what is its location?",) Tj T*
+(    "can you check my order?"],) Tj T*
+(    "responses": [) Tj T*
+(      "Let me check that for you.", ) Tj T*
+(      "I can help with that.", ) Tj T*
+ET
+endstream
+endobj
+57 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 56 0 R >>
+endobj
+58 0 obj
+<< /Length 3599 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(      "Sure."]) Tj T*
+(},) Tj T*
+({) Tj T*
+(    "tag": "returns_refunds",) Tj T*
+(    "queries": [) Tj T*
+(      "Can I return my mug?", ) Tj T*
+(      "What is your return policy?", ) Tj T*
+(      "How do I get a refund?", ) Tj T*
+(      "Can I exchange my mug?", ) Tj T*
+(      "Return process",) Tj T*
+(      "refund"],) Tj T*
+(    "responses": [) Tj T*
+(      "Our return policy allows returns within 30 days of purchase. Please visit our Returns & Refunds page for more ) Tj T*
+(details.", ) Tj T*
+(      "You can request a refund or exchange within 30 days of purchase. Please visit our Returns & Refunds page for ) Tj T*
+(instructions."]) Tj T*
+(},) Tj T*
+({) Tj T*
+(    "tag": "promotions_discounts",) Tj T*
+(    "queries": [) Tj T*
+(      "Do you have any promotions?", ) Tj T*
+(      "Are there any discounts available?", ) Tj T*
+(      "Can I use a coupon code?", ) Tj T*
+(      "Special offers", ) Tj T*
+(      "Discounts on mugs",) Tj T*
+(      "discounts"],) Tj T*
+(    "responses": [) Tj T*
+(      "Yes, we currently have a 10% discount on selected mugs. Use code MUG10 at checkout!", ) Tj T*
+(      "Sign up for our newsletter to receive exclusive discounts and promotions."]) Tj T*
+(},) Tj T*
+({) Tj T*
+(    "tag": "product_availability",) Tj T*
+(    "queries": [) Tj T*
+(    "Is this mug in stock?", ) Tj T*
+(    "When will this mug be available?", ) Tj T*
+(    "Product availability", ) Tj T*
+(    "Out of stock mugs", ) Tj T*
+(    "Can I pre-order a mug?",) Tj T*
+(    "stock"],) Tj T*
+(    "responses": [) Tj T*
+(    "The mug you're interested in is currently in stock and ready to ship!", ) Tj T*
+(    "Unfortunately, that mug is currently out of stock. You can sign up to be notified when it's back in stock."]) Tj T*
+(},) Tj T*
+({) Tj T*
+(    "tag": "customer_service",) Tj T*
+(    "queries": [) Tj T*
+(      "How can I contact customer service?", ) Tj T*
+(      "I need help from customer service", ) Tj T*
+(      "Contact support", ) Tj T*
+(      "Customer service hours", ) Tj T*
+(      "Live chat support"],) Tj T*
+(    "responses": [) Tj T*
+(      "You can reach our customer service team at support@coffeemugs.com ", ) Tj T*
+(      "Our customer service team is available from 9am to 6pm EST, Monday to Friday."]) Tj T*
+(},) Tj T*
+({) Tj T*
+(    "tag": "product_care",) Tj T*
+(    "queries": [) Tj T*
+(      "How do I care for my mug?", ) Tj T*
+(      "Mug care instructions", ) Tj T*
+(      "Can I put my mug in the dishwasher?", ) Tj T*
+(      "Cleaning my mug", "Care tips for mugs"],) Tj T*
+(    "responses": [) Tj T*
+(      "To prolong the life of your mug, we recommend hand washing it with mild soap and avoiding abrasive cleaners.", ) Tj T*
+(      "Our mugs are dishwasher safe, but hand washing is recommended for best results."]) Tj T*
+(},) Tj T*
+({) Tj T*
+(    "tag": "warranty_repairs",) Tj T*
+(    "queries": [) Tj T*
+(      "Is there a warranty on my mug?", ) Tj T*
+(      "How do I get my mug repaired?", ) Tj T*
+(      "Mug warranty information", ) Tj T*
+(      "Broken mug", ) Tj T*
+(      "Defective mug",) Tj T*
+(      "warranty",) Tj T*
+(      "do you have warranty"],) Tj T*
+(      ) Tj T*
+(    "responses": [) Tj T*
+(      "All our mugs come with a 1-year warranty against manufacturing defects. Please contact our customer service for) Tj T*
+( repair or replacement options.", ) Tj T*
+(      "We apologize for the inconvenience. Please contact our customer service team for assistance with your defective) Tj T*
+( mug."]) Tj T*
+(},) Tj T*
+({) Tj T*
+(    "tag": "shipping_costs_time",) Tj T*
+(    "queries": [) Tj T*
+ET
+endstream
+endobj
+59 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 58 0 R >>
+endobj
+60 0 obj
+<< /Length 3656 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(      "How much does shipping cost?", ) Tj T*
+(      "When will my mug arrive?", ) Tj T*
+(      "Shipping time for mugs", ) Tj T*
+(      "Express shipping options", ) Tj T*
+(      "International shipping",) Tj T*
+(      "what is the delivery fee?",) Tj T*
+(      "shipping fee",) Tj T*
+(      "delivery fee",) Tj T*
+(      "shipping cost",) Tj T*
+(      "cost",) Tj T*
+(      "what is the cost of shipping?"],) Tj T*
+(    "responses": [) Tj T*
+(      "Standard shipping is $5, and it usually takes 2-4 business days for your mug to arrive.") Tj T*
+(      ]) Tj T*
+(},) Tj T*
+({) Tj T*
+(    "tag": "bulk_orders",) Tj T*
+(    "queries": [) Tj T*
+(      "Can I order mugs in bulk?", ) Tj T*
+(      "Wholesale purchasing", ) Tj T*
+(      "Bulk discount on mugs", ) Tj T*
+(      "Large orders of mugs", ) Tj T*
+(      "Corporate gifts",) Tj T*
+(      "bulk"],) Tj T*
+(    "responses": [) Tj T*
+(      "Yes, we offer bulk ordering and wholesale purchasing options. Please contact our sales team for more ) Tj T*
+(information and special pricing.", ) Tj T*
+(      "Looking to place a large order for corporate gifts? We've got you covered! Contact our sales team for ) Tj T*
+(personalized assistance."]) Tj T*
+(},) Tj T*
+({) Tj T*
+(    "tag": "account_profile",) Tj T*
+(    "queries": [) Tj T*
+(      "How do I create an account?", ) Tj T*
+(      "Login issues", ) Tj T*
+(      "Update my profile", ) Tj T*
+(      "Forgot password", ) Tj T*
+(      "Account settings",) Tj T*
+(      "account",) Tj T*
+(      "profile",) Tj T*
+(      "how do i sign up?",) Tj T*
+(      "how do i make an account?",) Tj T*
+(      "how do i make a profile"],) Tj T*
+(    "responses": [) Tj T*
+(      "You can easily create an account by clicking on the 'Sign Up' button at the top right corner of our website. ) Tj T*
+(For login issues or password resets, please visit the 'Account Settings' page.", ) Tj T*
+(      "If you're having trouble logging in or need to reset your password, please visit our Account Settings page or ) Tj T*
+(contact customer service for assistance."]) Tj T*
+(},) Tj T*
+({) Tj T*
+(    "tag": "product_reviews_ratings",) Tj T*
+(    "queries": [) Tj T*
+(      "Can I see product reviews?", ) Tj T*
+(      "Mug ratings", ) Tj T*
+(      "Customer reviews", ) Tj T*
+(      "Product recommendations", ) Tj T*
+(      "Top-rated mugs",) Tj T*
+(      "reviews"],) Tj T*
+(    "responses": [) Tj T*
+(      "You can find customer reviews and ratings on each product page. We also feature top-rated mugs in our Best ) Tj T*
+(Sellers section.", ) Tj T*
+(      "Customer feedback is important to us! Check out our product pages for reviews, ratings, and recommendations."]) Tj T*
+(},) Tj T*
+({) Tj T*
+(    "tag": "loyalty_programs",) Tj T*
+(    "queries": [) Tj T*
+(      "Do you have a loyalty program?", ) Tj T*
+(      "Earning rewards", ) Tj T*
+(      "Membership benefits", ) Tj T*
+(      "Loyalty points", ) Tj T*
+(      "Joining the rewards program"],) Tj T*
+(    "responses": [) Tj T*
+(      "Yes, we have a loyalty program where you can earn points on every purchase. Sign up today to start earning ) Tj T*
+(rewards and enjoy exclusive member benefits!", ) Tj T*
+(      "Our loyalty program rewards you with points on every purchase, which can be redeemed for discounts on future ) Tj T*
+(orders. Join today and start saving!"]) Tj T*
+(},) Tj T*
+({) Tj T*
+(    "tag": "privacy_security",) Tj T*
+(    "queries": [) Tj T*
+(      "What is your privacy policy?", ) Tj T*
+(      "Is my data secure?", ) Tj T*
+(      "Data protection", ) Tj T*
+(      "Account security", ) Tj T*
+(      "Privacy settings"],) Tj T*
+(    "responses": [) Tj T*
+ET
+endstream
+endobj
+61 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 60 0 R >>
+endobj
+62 0 obj
+<< /Length 3146 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(    "We take your privacy seriously. You can view our full privacy policy on our website to learn how we collect, use,) Tj T*
+( and protect your personal information.", ) Tj T*
+(    "Protecting your data is our top priority. We use industry-standard encryption and security measures to safeguard ) Tj T*
+(your information.") Tj T*
+(  ]) Tj T*
+(},) Tj T*
+({) Tj T*
+(    "tag": "technical_support",) Tj T*
+(    "queries": [) Tj T*
+(      "I'm having trouble with the website", ) Tj T*
+(      "Technical issues", ) Tj T*
+(      "Website not working", ) Tj T*
+(      "Troubleshooting", ) Tj T*
+(      "Error messages") Tj T*
+(    ],) Tj T*
+(    "responses": [) Tj T*
+(      "We apologize for any inconvenience you're experiencing. Please try clearing your browser's cache and cookies or) Tj T*
+( using a different browser. If the issue persists, please contact our technical department"]) Tj T*
+(},) Tj T*
+({) Tj T*
+(    "tag": "create_order",) Tj T*
+(    "queries": [) Tj T*
+(      "create order",) Tj T*
+(      "place order",) Tj T*
+(      "new order",) Tj T*
+(      "make an order",) Tj T*
+(      "I want to place an order",) Tj T*
+(      "create a new order",) Tj T*
+(      "add order",) Tj T*
+(      "order a product",) Tj T*
+(      "buy a product",) Tj T*
+(      "I want to buy a product") Tj T*
+(    ],) Tj T*
+(    "responses": [) Tj T*
+(      "Sure, please fill in the order details in the form below.",) Tj T*
+(      "I can help with that. Please provide the order details.",) Tj T*
+(      "Got it. Use the order form to create a new order.") Tj T*
+(    ]) Tj T*
+(},) Tj T*
+({) Tj T*
+(    "tag": "cancel_order",) Tj T*
+(    "queries": [) Tj T*
+(      "cancel order",) Tj T*
+(      "delete order",) Tj T*
+(      "remove order",) Tj T*
+(      "cancel my order",) Tj T*
+(      "delete my order",) Tj T*
+(      "remove my order",) Tj T*
+(      "I want to cancel my order",) Tj T*
+(      "I want to delete my order",) Tj T*
+(      "Can you cancel my order?",) Tj T*
+(      "Can you delete my order?",) Tj T*
+(      "Cancel an existing order",) Tj T*
+(      "Delete an existing order") Tj T*
+(    ],) Tj T*
+(    "responses": [) Tj T*
+(      "Sure, I can help cancel your order.",) Tj T*
+(      "I can help with that. Please provide the order details.",) Tj T*
+(      "Okay, I will verify your order before cancelling it.") Tj T*
+(    ]) Tj T*
+(},) Tj T*
+({) Tj T*
+(    "tag": "admin_login",) Tj T*
+(    "queries": [) Tj T*
+(      "admin login",) Tj T*
+(      "login as admin",) Tj T*
+(      "admin",) Tj T*
+(      "I want to login as admin") Tj T*
+(    ],) Tj T*
+(    "responses": [) Tj T*
+(      "Please enter your admin credentials.") Tj T*
+(    ]) Tj T*
+(},) Tj T*
+({) Tj T*
+(    "tag": "update_order_status",) Tj T*
+(    "queries": [) Tj T*
+(      "update order status",) Tj T*
+(      "change order status",) Tj T*
+(      "set order status",) Tj T*
+(      "update order location",) Tj T*
+(      "change order location",) Tj T*
+(      "mark order as shipped",) Tj T*
+(      "mark order as delivered") Tj T*
+(    ],) Tj T*
+(    "responses": [) Tj T*
+(      "Admin access is required to update order status.") Tj T*
+ET
+endstream
+endobj
+63 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 62 0 R >>
+endobj
+64 0 obj
+<< /Length 3982 >>
+stream
+BT /F1 7 Tf 36 806 Td 9 TL
+(    ]) Tj T*
+(}) Tj T*
+(  ) Tj T*
+(  ) Tj T*
+(]) Tj T*
+(}) Tj T*
+() Tj T*
+(==========================================================================================) Tj T*
+(products.csv) Tj T*
+(==========================================================================================) Tj T*
+(product_id,name,category,color,size,material,price,stock,description) Tj T*
+(P001,Classic Red Mug,Coffee Mug,Red,350ml,Ceramic,12.99,25,Durable everyday ceramic mug in red) Tj T*
+(P002,Classic White Mug,Coffee Mug,White,350ml,Ceramic,11.99,40,Minimal white ceramic mug for coffee or tea) Tj T*
+(P003,Classic Blue Mug,Coffee Mug,Blue,350ml,Ceramic,12.99,30,Blue ceramic mug with dishwasher-safe finish) Tj T*
+(P004,Large Travel Mug,Travel Mug,Black,500ml,Stainless Steel,18.99,15,Insulated travel mug for hot drinks) Tj T*
+(P005,Gift Mug Set,Gift Set,Mixed,3 x 350ml,Ceramic,34.99,10,Three-piece mug gift set with red white and blue mugs) Tj T*
+() Tj T*
+(==========================================================================================) Tj T*
+(orders.csv) Tj T*
+(==========================================================================================) Tj T*
+(order_number,status,current_location,expected_delivery_date,customer_address,customer_name,customer_email) Tj T*
+(1122,Shipped,Shanghai,02/05/2024,Mandalay,John Doe,john@gmail.com) Tj T*
+(1123,Delivered,Beijing,01/05/2024,Shenzhen,Alice Smith,alice@gmail.com) Tj T*
+(1124,Processing,Guangzhou,05/05/2024,Shanghai,Bob Johnson,bob@gmail.com) Tj T*
+(1125,Shipped,Shenzhen,03/05/2024,Beijing,Emma Brown,emma@gmail.com) Tj T*
+(1126,Pending,Hangzhou,06/05/2024,Chengdu,David Wilson,david@example.com) Tj T*
+(1127,Delivered,Chengdu,30/04/2024,Hangzhou,Sophia Miller,sophia@example.com) Tj T*
+(1128,Cancelled,Wuhan,N/A,Shanghai,Michael Lee,michael@example.com) Tj T*
+(1129,Shipped,Nanjing,04/05/2024,Guangzhou,Olivia Taylor,olivia@example.com) Tj T*
+(1130,Processing,Shenzhen,07/05/2024,Beijing,Daniel Martinez,daniel@example.com) Tj T*
+(1131,Pending,Beijing,08/05/2024,Shenzhen,Emily Garcia,emily@example.com) Tj T*
+(1132,Delivered,Guangzhou,29/04/2024,Shanghai,William Anderson,william@example.com) Tj T*
+(1133,Shipped,Tianjin,05/05/2024,Hangzhou,James Thomas,james@example.com) Tj T*
+(1134,Processing,Wuhan,06/05/2024,Chengdu,Charlotte White,charlotte@example.com) Tj T*
+(1135,Pending,Shanghai,07/05/2024,Beijing,Lucas Martin,lucas@example.com) Tj T*
+(1136,Cancelled,Beijing,N/A,Shenzhen,Mia Walker,mia@example.com) Tj T*
+(1137,Shipped,Nanjing,08/05/2024,Guangzhou,Ethan Harris,ethan@example.com) Tj T*
+(1138,Processing,Shenzhen,09/05/2024,Shanghai,Isabella Clark,isabella@example.com) Tj T*
+(1139,Pending,Wuhan,10/05/2024,Chengdu,Matthew Hall,matthew@example.com) Tj T*
+(1140,Delivered,Shanghai,28/04/2024,Hangzhou,Sophia King,sophia@example.com) Tj T*
+(1141,Shipped,Chongqing,11/05/2024,Beijing,Michael Green,michaelg@example.com) Tj T*
+(1142,Processing,Tianjin,12/05/2024,Shenzhen,Emma Adams,emmaad@example.com) Tj T*
+(1143,Pending,Guangzhou,13/05/2024,Shanghai,Benjamin Scott,benjamin@example.com) Tj T*
+(1144,Delivered,Wuhan,27/04/2024,Chengdu,Amelia Nelson,amelia@example.com) Tj T*
+(1145,Cancelled,Hangzhou,N/A,Beijing,Alexander Carter,alexander@example.com) Tj T*
+(1146,Shipped,Chongqing,14/05/2024,Shenzhen,Harper Collins,harper@example.com) Tj T*
+(1147,Processing,Beijing,15/05/2024,Guangzhou,Daniel Baker,danielb@example.com) Tj T*
+(1148,Pending,Shanghai,16/05/2024,Hangzhou,Oliver Ramirez,oliver@example.com) Tj T*
+(1149,Delivered,Shenzhen,26/04/2024,Chengdu,Charlotte Turner,charlotte@example.com) Tj T*
+(1150,Shipped,Guangzhou,17/05/2024,Beijing,Jack White,jack@example.com) Tj T*
+() Tj T*
+(==========================================================================================) Tj T*
+(requirements.txt) Tj T*
+(==========================================================================================) Tj T*
+(torch) Tj T*
+(pyodbc) Tj T*
+(nltk) Tj T*
+(numpy) Tj T*
+() Tj T*
+ET
+endstream
+endobj
+65 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 3 0 R >> >> /Contents 64 0 R >>
+endobj
+xref
+0 66
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000324 00000 n 
+0000000392 00000 n 
+0000003864 00000 n 
+0000003990 00000 n 
+0000007410 00000 n 
+0000007536 00000 n 
+0000010598 00000 n 
+0000010724 00000 n 
+0000013768 00000 n 
+0000013896 00000 n 
+0000017187 00000 n 
+0000017315 00000 n 
+0000021055 00000 n 
+0000021183 00000 n 
+0000024750 00000 n 
+0000024878 00000 n 
+0000028590 00000 n 
+0000028718 00000 n 
+0000032287 00000 n 
+0000032415 00000 n 
+0000036273 00000 n 
+0000036401 00000 n 
+0000040284 00000 n 
+0000040412 00000 n 
+0000044239 00000 n 
+0000044367 00000 n 
+0000048947 00000 n 
+0000049075 00000 n 
+0000053063 00000 n 
+0000053191 00000 n 
+0000056983 00000 n 
+0000057111 00000 n 
+0000060442 00000 n 
+0000060570 00000 n 
+0000064472 00000 n 
+0000064600 00000 n 
+0000067758 00000 n 
+0000067886 00000 n 
+0000071305 00000 n 
+0000071433 00000 n 
+0000074747 00000 n 
+0000074875 00000 n 
+0000078020 00000 n 
+0000078148 00000 n 
+0000081371 00000 n 
+0000081499 00000 n 
+0000085370 00000 n 
+0000085498 00000 n 
+0000090332 00000 n 
+0000090460 00000 n 
+0000094388 00000 n 
+0000094516 00000 n 
+0000098829 00000 n 
+0000098957 00000 n 
+0000103104 00000 n 
+0000103232 00000 n 
+0000106884 00000 n 
+0000107012 00000 n 
+0000110721 00000 n 
+0000110849 00000 n 
+0000114048 00000 n 
+0000114176 00000 n 
+0000118211 00000 n 
+trailer
+<< /Size 66 /Root 1 0 R >>
+startxref
+118339
+%%EOF

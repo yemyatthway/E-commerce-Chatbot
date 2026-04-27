@@ -1,10 +1,17 @@
 import tkinter as tk
 from tkinter import font
 from tkinter import simpledialog
-import random
-import torch
-import json
 
+from chatbot_engine import (
+    CONFIDENCE_THRESHOLD,
+    PRODUCT_QUESTION_TAGS,
+    ChatbotEngine,
+    is_admin_login_request,
+    is_admin_logout_request,
+    is_cancel_order_request,
+    is_create_order_request,
+    is_update_status_request,
+)
 from db import (
     authenticate_user,
     create_order,
@@ -17,13 +24,7 @@ from db import (
     update_order_status,
     verify_customer_email,
 )
-from model import NeuralNet
-from nltk_utils import bag_of_words, tokenize
 from product_catalog import format_product, format_product_list, get_product_by_id, load_products
-
-
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-PRODUCT_QUESTION_TAGS = {"items", "product_availability", "sizes", "material"}
 
 
 class ChatGUI:
@@ -44,22 +45,7 @@ class ChatGUI:
         self.build_chat_area()
         self.build_input_area()
 
-        self.intents = self.load_intents("intents.json")
-        (
-            self.input_size,
-            self.hidden_size,
-            self.output_size,
-            self.all_words,
-            self.tags,
-            self.model_state,
-        ) = self.load_model_data("data.pth")
-        self.model = NeuralNet(
-            self.input_size,
-            self.hidden_size,
-            self.output_size,
-        ).to(device)
-        self.model.load_state_dict(self.model_state)
-        self.model.eval()
+        self.engine = ChatbotEngine.from_files("data.pth", "intents.json")
         self.setup_database()
         self.display_message(
             self.bot_name,
@@ -267,29 +253,6 @@ class ChatGUI:
         except Exception as e:
             print(f"Error initializing database: {e}")
 
-    def load_intents(self, file_path):
-        try:
-            with open(file_path, 'r') as file:
-                return json.load(file)
-        except Exception as e:
-            print(f"Error loading intents data: {e}")
-            return None
-
-    def load_model_data(self, file_path):
-        try:
-            data = torch.load(file_path)
-            return (
-                data["input_size"],
-                data["hidden_size"],
-                data["output_size"],
-                data['all_words'],
-                data['tags'],
-                data["model_state"]
-            )
-        except Exception as e:
-            print(f"Error loading model data: {e}")
-            return None, None, None, None, None, None
-
     def send_message(self, event=None):
         user_input = self.input_field.get().strip()
         if not user_input:
@@ -299,98 +262,51 @@ class ChatGUI:
         self.generate_bot_response(user_input)
 
     def generate_bot_response(self, user_input):
-        if self.is_admin_login_request(user_input):
+        if is_admin_login_request(user_input):
             self.admin_login_gui()
             return
-        if self.is_admin_logout_request(user_input):
+        if is_admin_logout_request(user_input):
             self.admin_logout()
             return
-        if self.is_update_status_request(user_input):
+        if is_update_status_request(user_input):
             self.update_order_status_gui()
             return
-        if self.is_cancel_order_request(user_input):
+        if is_cancel_order_request(user_input):
             self.get_response("cancel_order", 1.0)
             return
-        if self.is_create_order_request(user_input):
+        if is_create_order_request(user_input):
             self.get_response("create_order", 1.0)
             return
 
-        tag, prob = self.get_model_output(user_input)
+        tag, prob = self.engine.predict(user_input)
         self.get_response(tag, prob)
-
-    def is_cancel_order_request(self, user_input):
-        normalized = user_input.lower()
-        cancel_words = ["cancel", "delete", "remove"]
-        return "order" in normalized and any(word in normalized for word in cancel_words)
-
-    def is_create_order_request(self, user_input):
-        normalized = user_input.lower()
-        create_words = ["create", "place", "make", "add", "buy"]
-        return any(word in normalized for word in create_words) and (
-            "order" in normalized or "product" in normalized
-        )
-
-    def is_admin_login_request(self, user_input):
-        normalized = user_input.lower()
-        return normalized in {"admin login", "login as admin", "admin"}
-
-    def is_admin_logout_request(self, user_input):
-        return user_input.lower() in {"admin logout", "logout"}
-
-    def is_update_status_request(self, user_input):
-        normalized = user_input.lower()
-        status_words = ["status", "location", "shipped", "delivered", "processing"]
-        update_words = ["update", "change", "set", "mark"]
-        return "order" in normalized and any(word in normalized for word in status_words) and (
-            any(word in normalized for word in update_words)
-        )
 
     def is_admin(self):
         return self.current_user and self.current_user.get("role") == "admin"
 
-    def get_model_output(self, sentence):
-        sentence = tokenize(sentence)
-        X = bag_of_words(sentence, self.all_words)
-        X = X.reshape(1, X.shape[0])
-        X = torch.from_numpy(X).to(device)
-
-        output = self.model(X)
-        _, predicted = torch.max(output, dim=1)
-        tag = self.tags[predicted.item()]
-
-        probs = torch.softmax(output, dim=1)
-        prob = probs[0][predicted.item()]
-
-        return tag, prob.item()
-
     def get_response(self, tag, prob):
-        if prob > 0.75:
-            for intent in self.intents['intents']:
-                if tag == intent["tag"]:
-                    response = random.choice(intent['responses'])
-                    self.display_message(self.bot_name, response)
-
-                    if tag == "order_status":
-                        self.track_order_gui()
-                    elif tag == "update_address":
-                        self.update_address_gui()
-                    elif tag == "create_order":
-                        self.create_order_gui()
-                    elif tag == "cancel_order":
-                        self.cancel_order_gui()
-                    elif tag == "admin_login":
-                        self.admin_login_gui()
-                    elif tag == "update_order_status":
-                        self.update_order_status_gui()
-                    elif tag in PRODUCT_QUESTION_TAGS:
-                        self.show_products_gui()
-
-                    return
-        else:
+        if prob <= CONFIDENCE_THRESHOLD:
             self.display_message(
                 self.bot_name,
                 "I do not understand, please rephrase your question so I can better assist you.",
             )
+            return
+
+        self.display_message(self.bot_name, self.engine.get_response_text(tag))
+        if tag == "order_status":
+            self.track_order_gui()
+        elif tag == "update_address":
+            self.update_address_gui()
+        elif tag == "create_order":
+            self.create_order_gui()
+        elif tag == "cancel_order":
+            self.cancel_order_gui()
+        elif tag == "admin_login":
+            self.admin_login_gui()
+        elif tag == "update_order_status":
+            self.update_order_status_gui()
+        elif tag in PRODUCT_QUESTION_TAGS:
+            self.show_products_gui()
 
     def display_message(self, sender, message):
         is_user = sender == "You"
@@ -576,8 +492,7 @@ class ChatGUI:
         if not product:
             return
 
-        order_number = simpledialog.askstring("Create Order", "Enter order number:")
-        customer_name = simpledialog.askstring("Create Order", "Enter customer name (optional):")
+        customer_name = simpledialog.askstring("Create Order", "Enter customer name:")
         customer_email = simpledialog.askstring("Create Order", "Enter customer email:")
         customer_address = simpledialog.askstring("Create Order", "Enter customer address:")
         quantity = simpledialog.askinteger(
@@ -592,14 +507,14 @@ class ChatGUI:
         )
 
         if (
-            not order_number
+            not customer_name
             or not customer_email
             or not customer_address
             or not quantity
         ):
             self.display_message(
                 self.bot_name,
-                "Order number, email, address, and quantity are required.",
+                "Customer name, email, address, and quantity are required.",
             )
             return
 
@@ -607,7 +522,6 @@ class ChatGUI:
             unit_price = float(product["price"])
             total_price = unit_price * quantity
             ok, message = create_order(
-                order_number=order_number,
                 customer_email=customer_email,
                 customer_address=customer_address,
                 customer_name=customer_name,
@@ -624,7 +538,7 @@ class ChatGUI:
                 self.display_message(
                     self.bot_name,
                     (
-                        "Order created successfully.\n"
+                        f"{message}\n"
                         f"Product: {format_product(product)}\n"
                         f"Quantity: {quantity}\n"
                         f"Total: ${total_price:.2f}"
@@ -670,6 +584,7 @@ class ChatGUI:
             self.display_message(self.bot_name, "Order not found.")
 
 
-root = tk.Tk()
-chat_gui = ChatGUI(root)
-root.mainloop()
+if __name__ == "__main__":
+    root = tk.Tk()
+    chat_gui = ChatGUI(root)
+    root.mainloop()
