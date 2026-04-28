@@ -82,8 +82,8 @@ def get_connection():
     raw = os.getenv(
         "MSSQL_CONNECTION_STRING",
         (
-            "Server=127.0.0.1,1433;Database=ChatbotDb;User Id=sa;"
-            "Password=Ryen@123;TrustServerCertificate=yes;Encrypt=yes"
+            "Server=127.0.0.1,1433;Database=ChatbotDb;User Id=username;"
+            "Password=YourStrongP@ssword!!;TrustServerCertificate=yes;Encrypt=yes"
         ),
     )
     conn_str = _build_odbc_conn_str(raw)
