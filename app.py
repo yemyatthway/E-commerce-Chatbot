@@ -2,6 +2,12 @@ import tkinter as tk
 from tkinter import font
 from tkinter import simpledialog
 
+from chatbot_features import (
+    category_prediction_message,
+    market_basket_message,
+    product_popularity_message,
+    recommendation_message,
+)
 from chatbot_engine import (
     CONFIDENCE_THRESHOLD,
     PRODUCT_QUESTION_TAGS,
@@ -9,7 +15,11 @@ from chatbot_engine import (
     is_admin_login_request,
     is_admin_logout_request,
     is_cancel_order_request,
+    is_category_prediction_request,
     is_create_order_request,
+    is_market_basket_request,
+    is_product_popularity_request,
+    is_recommendation_request,
     is_update_status_request,
 )
 from db import (
@@ -24,7 +34,12 @@ from db import (
     update_order_status,
     verify_customer_email,
 )
-from product_catalog import format_product, format_product_list, get_product_by_id, load_products
+from product_catalog import (
+    format_product,
+    format_product_list,
+    get_product_by_id,
+    load_products,
+)
 
 
 class ChatGUI:
@@ -40,6 +55,8 @@ class ChatGUI:
 
         self.bot_name = "bot4urLIF3"
         self.current_user = None
+        self.viewed_product_ids = set()
+        self.cart_product_ids = []
         self.setup_styles()
         self.build_header()
         self.build_chat_area()
@@ -277,19 +294,35 @@ class ChatGUI:
         if is_create_order_request(user_input):
             self.get_response("create_order", 1.0)
             return
+        if is_recommendation_request(user_input):
+            self.show_recommendations_gui(user_input)
+            return
+        if is_market_basket_request(user_input):
+            self.show_market_basket_gui()
+            return
+        if is_product_popularity_request(user_input):
+            self.show_product_popularity_gui()
+            return
+        if is_category_prediction_request(user_input):
+            self.show_category_prediction_gui(user_input)
+            return
 
         tag, prob = self.engine.predict(user_input)
-        self.get_response(tag, prob)
+        self.get_response(tag, prob, user_input)
 
     def is_admin(self):
         return self.current_user and self.current_user.get("role") == "admin"
 
-    def get_response(self, tag, prob):
+    def get_response(self, tag, prob, user_input=None):
         if prob <= CONFIDENCE_THRESHOLD:
             self.display_message(
                 self.bot_name,
                 "I do not understand, please rephrase your question so I can better assist you.",
             )
+            return
+
+        if tag == "recommendations":
+            self.show_recommendations_gui(user_input or "")
             return
 
         self.display_message(self.bot_name, self.engine.get_response_text(tag))
@@ -406,9 +439,38 @@ class ChatGUI:
 
     def show_products_gui(self):
         products = load_products()
+        self.viewed_product_ids.update(product["product_id"] for product in products)
         self.display_message(
             self.bot_name,
             "Available products:\n" + format_product_list(products),
+        )
+
+    def show_recommendations_gui(self, user_input):
+        self.display_message(
+            self.bot_name,
+            recommendation_message(
+                user_input,
+                self.viewed_product_ids,
+                self.cart_product_ids,
+            ),
+        )
+
+    def show_product_popularity_gui(self):
+        self.display_message(
+            self.bot_name,
+            product_popularity_message(),
+        )
+
+    def show_market_basket_gui(self):
+        self.display_message(
+            self.bot_name,
+            market_basket_message(),
+        )
+
+    def show_category_prediction_gui(self, user_input):
+        self.display_message(
+            self.bot_name,
+            category_prediction_message(user_input),
         )
 
     def select_product_gui(self):
@@ -417,6 +479,7 @@ class ChatGUI:
             self.display_message(self.bot_name, "No products are available right now.")
             return None
 
+        self.viewed_product_ids.update(product["product_id"] for product in products)
         self.display_message(
             self.bot_name,
             "Available products:\n" + format_product_list(products),
@@ -429,6 +492,7 @@ class ChatGUI:
         if not product:
             self.display_message(self.bot_name, "Product not found.")
             return None
+        self.viewed_product_ids.add(product["product_id"])
         return product
 
     def admin_login_gui(self):
@@ -535,6 +599,7 @@ class ChatGUI:
                 total_price=total_price,
             )
             if ok:
+                self.cart_product_ids.append(product["product_id"])
                 self.display_message(
                     self.bot_name,
                     (

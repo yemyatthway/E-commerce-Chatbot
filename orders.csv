@@ -1,30 +1,34 @@
-order_number,status,current_location,expected_delivery_date,customer_address,customer_name,customer_email
-1122,Shipped,Shanghai,02/05/2024,Mandalay,John Doe,john@gmail.com
-1123,Delivered,Beijing,01/05/2024,Shenzhen,Alice Smith,alice@gmail.com
-1124,Processing,Guangzhou,05/05/2024,Shanghai,Bob Johnson,bob@gmail.com
-1125,Shipped,Shenzhen,03/05/2024,Beijing,Emma Brown,emma@gmail.com
-1126,Pending,Hangzhou,06/05/2024,Chengdu,David Wilson,david@example.com
-1127,Delivered,Chengdu,30/04/2024,Hangzhou,Sophia Miller,sophia@example.com
-1128,Cancelled,Wuhan,N/A,Shanghai,Michael Lee,michael@example.com
-1129,Shipped,Nanjing,04/05/2024,Guangzhou,Olivia Taylor,olivia@example.com
-1130,Processing,Shenzhen,07/05/2024,Beijing,Daniel Martinez,daniel@example.com
-1131,Pending,Beijing,08/05/2024,Shenzhen,Emily Garcia,emily@example.com
-1132,Delivered,Guangzhou,29/04/2024,Shanghai,William Anderson,william@example.com
-1133,Shipped,Tianjin,05/05/2024,Hangzhou,James Thomas,james@example.com
-1134,Processing,Wuhan,06/05/2024,Chengdu,Charlotte White,charlotte@example.com
-1135,Pending,Shanghai,07/05/2024,Beijing,Lucas Martin,lucas@example.com
-1136,Cancelled,Beijing,N/A,Shenzhen,Mia Walker,mia@example.com
-1137,Shipped,Nanjing,08/05/2024,Guangzhou,Ethan Harris,ethan@example.com
-1138,Processing,Shenzhen,09/05/2024,Shanghai,Isabella Clark,isabella@example.com
-1139,Pending,Wuhan,10/05/2024,Chengdu,Matthew Hall,matthew@example.com
-1140,Delivered,Shanghai,28/04/2024,Hangzhou,Sophia King,sophia@example.com
-1141,Shipped,Chongqing,11/05/2024,Beijing,Michael Green,michaelg@example.com
-1142,Processing,Tianjin,12/05/2024,Shenzhen,Emma Adams,emmaad@example.com
-1143,Pending,Guangzhou,13/05/2024,Shanghai,Benjamin Scott,benjamin@example.com
-1144,Delivered,Wuhan,27/04/2024,Chengdu,Amelia Nelson,amelia@example.com
-1145,Cancelled,Hangzhou,N/A,Beijing,Alexander Carter,alexander@example.com
-1146,Shipped,Chongqing,14/05/2024,Shenzhen,Harper Collins,harper@example.com
-1147,Processing,Beijing,15/05/2024,Guangzhou,Daniel Baker,danielb@example.com
-1148,Pending,Shanghai,16/05/2024,Hangzhou,Oliver Ramirez,oliver@example.com
-1149,Delivered,Shenzhen,26/04/2024,Chengdu,Charlotte Turner,charlotte@example.com
-1150,Shipped,Guangzhou,17/05/2024,Beijing,Jack White,jack@example.com
+order_number,status,current_location,expected_delivery_date,customer_address,customer_name,customer_email,product_id,product_name,quantity,unit_price,total_price
+1122,Shipped,Shanghai,02/05/2024,Mandalay,John Doe,john@gmail.com,P001,Classic Red Mug,2,12.99,25.98
+1123,Delivered,Beijing,01/05/2024,Shenzhen,Alice Smith,alice@gmail.com,P002,Classic White Mug,1,11.99,11.99
+1124,Processing,Guangzhou,05/05/2024,Shanghai,Bob Johnson,bob@gmail.com,P003,Classic Blue Mug,3,12.99,38.97
+1125,Shipped,Shenzhen,03/05/2024,Beijing,Emma Brown,emma@gmail.com,P005,Gift Mug Set,1,34.99,34.99
+1126,Pending,Hangzhou,06/05/2024,Chengdu,David Wilson,david@example.com,P004,Large Travel Mug,1,18.99,18.99
+1127,Delivered,Chengdu,30/04/2024,Hangzhou,Sophia Miller,sophia@example.com,P001,Classic Red Mug,1,12.99,12.99
+1128,Cancelled,Wuhan,N/A,Shanghai,Michael Lee,michael@example.com,P002,Classic White Mug,1,11.99,11.99
+1129,Shipped,Nanjing,04/05/2024,Guangzhou,Olivia Taylor,olivia@example.com,P003,Classic Blue Mug,2,12.99,25.98
+1130,Processing,Shenzhen,07/05/2024,Beijing,Daniel Martinez,daniel@example.com,P004,Large Travel Mug,1,18.99,18.99
+1131,Pending,Beijing,08/05/2024,Shenzhen,Emily Garcia,emily@example.com,P005,Gift Mug Set,1,34.99,34.99
+1132,Delivered,Guangzhou,29/04/2024,Shanghai,William Anderson,william@example.com,P001,Classic Red Mug,2,12.99,25.98
+1133,Shipped,Tianjin,05/05/2024,Hangzhou,James Thomas,james@example.com,P002,Classic White Mug,2,11.99,23.98
+1134,Processing,Wuhan,06/05/2024,Chengdu,Charlotte White,charlotte@example.com,P003,Classic Blue Mug,1,12.99,12.99
+1135,Pending,Shanghai,07/05/2024,Beijing,Lucas Martin,lucas@example.com,P005,Gift Mug Set,1,34.99,34.99
+1136,Cancelled,Beijing,N/A,Shenzhen,Mia Walker,mia@example.com,P004,Large Travel Mug,1,18.99,18.99
+1137,Shipped,Nanjing,08/05/2024,Guangzhou,Ethan Harris,ethan@example.com,P001,Classic Red Mug,3,12.99,38.97
+1138,Processing,Shenzhen,09/05/2024,Shanghai,Isabella Clark,isabella@example.com,P002,Classic White Mug,1,11.99,11.99
+1139,Pending,Wuhan,10/05/2024,Chengdu,Matthew Hall,matthew@example.com,P003,Classic Blue Mug,2,12.99,25.98
+1140,Delivered,Shanghai,28/04/2024,Hangzhou,Sophia King,sophia@example.com,P005,Gift Mug Set,1,34.99,34.99
+1141,Shipped,Chongqing,11/05/2024,Beijing,Michael Green,michaelg@example.com,P004,Large Travel Mug,2,18.99,37.98
+1142,Processing,Tianjin,12/05/2024,Shenzhen,Emma Adams,emmaad@example.com,P001,Classic Red Mug,1,12.99,12.99
+1143,Pending,Guangzhou,13/05/2024,Shanghai,Benjamin Scott,benjamin@example.com,P002,Classic White Mug,2,11.99,23.98
+1144,Delivered,Wuhan,27/04/2024,Chengdu,Amelia Nelson,amelia@example.com,P003,Classic Blue Mug,1,12.99,12.99
+1145,Cancelled,Hangzhou,N/A,Beijing,Alexander Carter,alexander@example.com,P004,Large Travel Mug,1,18.99,18.99
+1146,Shipped,Chongqing,14/05/2024,Shenzhen,Harper Collins,harper@example.com,P005,Gift Mug Set,1,34.99,34.99
+1147,Processing,Beijing,15/05/2024,Guangzhou,Daniel Baker,danielb@example.com,P001,Classic Red Mug,2,12.99,25.98
+1148,Pending,Shanghai,16/05/2024,Hangzhou,Oliver Ramirez,oliver@example.com,P002,Classic White Mug,1,11.99,11.99
+1149,Delivered,Shenzhen,26/04/2024,Chengdu,Charlotte Turner,charlotte@example.com,P003,Classic Blue Mug,2,12.99,25.98
+1150,Shipped,Guangzhou,17/05/2024,Beijing,Jack White,jack@example.com,P005,Gift Mug Set,1,34.99,34.99
+1151,Delivered,Shanghai,18/05/2024,Mandalay,John Doe,john@gmail.com,P002,Classic White Mug,1,11.99,11.99
+1152,Delivered,Beijing,19/05/2024,Shenzhen,Alice Smith,alice@gmail.com,P001,Classic Red Mug,1,12.99,12.99
+1153,Shipped,Guangzhou,20/05/2024,Shanghai,Bob Johnson,bob@gmail.com,P005,Gift Mug Set,1,34.99,34.99
+1154,Delivered,Shenzhen,21/05/2024,Beijing,Emma Brown,emma@gmail.com,P003,Classic Blue Mug,2,12.99,25.98

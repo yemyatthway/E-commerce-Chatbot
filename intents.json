@@ -574,6 +574,74 @@
     ]
 },
 {
+    "tag": "recommendations",
+    "queries": [
+      "Recommend similar products",
+      "Can you recommend a mug for me?",
+      "Suggest products based on what I viewed",
+      "What should I buy?",
+      "Show me personalized recommendations",
+      "Recommend something like P001",
+      "Suggest a similar mug",
+      "What products are similar to this?",
+      "Can you suggest items for my cart?",
+      "Best match for me"
+    ],
+    "responses": [
+      "I can recommend products based on your browsing and cart activity.",
+      "Here are some products that match your interests.",
+      "I found a few similar products for you."
+    ]
+},
+{
+    "tag": "product_popularity_analysis",
+    "queries": [
+      "Show product popularity",
+      "What are the most popular products?",
+      "Show me the best selling mugs",
+      "Top selling products",
+      "Product popularity analysis",
+      "Sales analysis",
+      "Show analytics"
+    ],
+    "responses": [
+      "I can show product popularity using order history.",
+      "Here is the sales-based product popularity analysis."
+    ]
+},
+{
+    "tag": "market_basket_analysis",
+    "queries": [
+      "Market basket analysis",
+      "Run Apriori analysis",
+      "Which products are frequently bought together?",
+      "Show product pairs",
+      "Basket analysis",
+      "Frequently bought together"
+    ],
+    "responses": [
+      "I can analyze product pairs bought by the same customers.",
+      "Here is the market basket analysis from order history."
+    ]
+},
+{
+    "tag": "product_category_prediction",
+    "queries": [
+      "Predict category for P001",
+      "What category is P004?",
+      "Which category does this product belong to?",
+      "Classify product Classic Red Mug",
+      "Product category prediction",
+      "Predict category for insulated travel mug",
+      "What category is a gift mug set?",
+      "Classify this product as a category"
+    ],
+    "responses": [
+      "I can predict the product category using product text features.",
+      "I will classify the product into a category."
+    ]
+},
+{
     "tag": "update_order_status",
     "queries": [
       "update order status",

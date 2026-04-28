@@ -32,3 +32,4 @@ if __name__ == "__main__":
     print(f"Total Tags: {total_intents}")
     print(f"Total Correct: {total_correct}")
     print(f"Total Wrong: {total_wrong}")
+

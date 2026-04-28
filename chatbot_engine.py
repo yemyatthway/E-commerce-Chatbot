@@ -53,6 +53,65 @@ def is_update_status_request(user_input):
     )
 
 
+def is_recommendation_request(user_input):
+    normalized = user_input.lower()
+    recommendation_words = {
+        "recommend",
+        "recommendation",
+        "suggest",
+        "suggestion",
+        "similar",
+        "personalized",
+        "best match",
+        "you think i should buy",
+        "what should i buy",
+    }
+    return any(word in normalized for word in recommendation_words)
+
+
+def is_product_popularity_request(user_input):
+    normalized = user_input.lower()
+    popularity_words = {
+        "popular product",
+        "popular products",
+        "product popularity",
+        "best selling",
+        "best-selling",
+        "top selling",
+        "top products",
+        "sales analysis",
+        "analytics",
+    }
+    return any(word in normalized for word in popularity_words)
+
+
+def is_market_basket_request(user_input):
+    normalized = user_input.lower()
+    basket_words = {
+        "market basket",
+        "apriori",
+        "frequently bought together",
+        "bought together",
+        "product pairs",
+        "basket analysis",
+    }
+    return any(word in normalized for word in basket_words)
+
+
+def is_category_prediction_request(user_input):
+    normalized = user_input.lower()
+    category_words = {
+        "predict category",
+        "category prediction",
+        "what category",
+        "which category",
+        "classify product",
+        "classify this product",
+        "product category",
+    }
+    return any(word in normalized for word in category_words)
+
+
 class ChatbotEngine:
     def __init__(self, model, all_words, tags, intents, device=None):
         self.model = model

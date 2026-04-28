@@ -1,3 +1,9 @@
+from chatbot_features import (
+    category_prediction_message,
+    market_basket_message,
+    product_popularity_message,
+    recommendation_message,
+)
 from chatbot_engine import (
     CONFIDENCE_THRESHOLD,
     PRODUCT_QUESTION_TAGS,
@@ -5,7 +11,11 @@ from chatbot_engine import (
     is_admin_login_request,
     is_admin_logout_request,
     is_cancel_order_request,
+    is_category_prediction_request,
     is_create_order_request,
+    is_market_basket_request,
+    is_product_popularity_request,
+    is_recommendation_request,
     is_update_status_request,
 )
 from db import (
@@ -19,7 +29,12 @@ from db import (
     update_order_status,
     verify_customer_email,
 )
-from product_catalog import format_product, format_product_list, get_product_by_id, load_products
+from product_catalog import (
+    format_product,
+    format_product_list,
+    get_product_by_id,
+    load_products,
+)
 
 
 bot_name = "Lyla"
@@ -48,10 +63,24 @@ def handle_special_cases(sentence, bot_name):
     return False
 
 
-def get_response(tag, prob, engine, bot_name, current_user=None, context=None):
+def get_response(
+    sentence,
+    tag,
+    prob,
+    engine,
+    bot_name,
+    current_user=None,
+    context=None,
+    viewed_product_ids=None,
+    cart_product_ids=None,
+):
     if prob <= CONFIDENCE_THRESHOLD:
         print(f"{bot_name}: I do not understand...")
         return
+
+    if tag == "recommendations":
+        show_recommendations_cli(sentence, viewed_product_ids, cart_product_ids)
+        return current_user
 
     print(f"{bot_name}: {engine.get_response_text(tag, context)}")
     if tag == "order_status":
@@ -60,7 +89,10 @@ def get_response(tag, prob, engine, bot_name, current_user=None, context=None):
     elif tag == "update_address":
         update_address_cli()
     elif tag == "create_order":
-        create_order_cli()
+        create_order_cli(
+            viewed_product_ids=viewed_product_ids,
+            cart_product_ids=cart_product_ids,
+        )
     elif tag == "cancel_order":
         cancel_order_cli()
     elif tag == "admin_login":
@@ -68,7 +100,7 @@ def get_response(tag, prob, engine, bot_name, current_user=None, context=None):
     elif tag == "update_order_status":
         update_order_status_cli(current_user)
     elif tag in PRODUCT_QUESTION_TAGS:
-        show_products_cli()
+        show_products_cli(viewed_product_ids)
 
     return current_user
 
@@ -116,20 +148,24 @@ def track_order(order_number):
         print("Order not found.")
 
 
-def show_products_cli():
+def show_products_cli(viewed_product_ids=None):
     products = load_products()
+    if viewed_product_ids is not None:
+        viewed_product_ids.update(product["product_id"] for product in products)
     print("")
     print("Available Products:")
     print(format_product_list(products))
     print("")
 
 
-def select_product_cli():
+def select_product_cli(viewed_product_ids=None):
     products = load_products()
     if not products:
         print(f"{bot_name}: No products are available right now.")
         return None
 
+    if viewed_product_ids is not None:
+        viewed_product_ids.update(product["product_id"] for product in products)
     print("")
     print("Available Products:")
     print(format_product_list(products))
@@ -139,11 +175,17 @@ def select_product_cli():
     if not product:
         print(f"{bot_name}: Product not found.")
         return None
+    if viewed_product_ids is not None:
+        viewed_product_ids.add(product["product_id"])
     return product
 
 
-def create_order_cli(selected_product=None):
-    product = selected_product or select_product_cli()
+def create_order_cli(
+    selected_product=None,
+    viewed_product_ids=None,
+    cart_product_ids=None,
+):
+    product = selected_product or select_product_cli(viewed_product_ids)
     if not product:
         return
 
@@ -187,6 +229,8 @@ def create_order_cli(selected_product=None):
             total_price=total_price,
         )
         if ok:
+            if cart_product_ids is not None:
+                cart_product_ids.append(product["product_id"])
             print(message)
             print(f"Product: {format_product(product)}")
             print(f"Quantity: {quantity}")
@@ -195,6 +239,38 @@ def create_order_cli(selected_product=None):
             print(message)
     except Exception as e:
         print(f"Failed to create order: {e}")
+
+
+def show_recommendations_cli(
+    sentence,
+    viewed_product_ids=None,
+    cart_product_ids=None,
+):
+    print("")
+    print(f"{bot_name}: Here are personalized product recommendations.")
+    print(recommendation_message(sentence, viewed_product_ids, cart_product_ids))
+    print("")
+
+
+def show_product_popularity_cli():
+    print("")
+    print(f"{bot_name}: Here is the product popularity analysis.")
+    print(product_popularity_message())
+    print("")
+
+
+def show_market_basket_cli():
+    print("")
+    print(f"{bot_name}: Here is the market basket analysis.")
+    print(market_basket_message())
+    print("")
+
+
+def show_category_prediction_cli(sentence):
+    print("")
+    print(f"{bot_name}: I used the product category prediction model.")
+    print(category_prediction_message(sentence))
+    print("")
 
 
 def cancel_order_cli():
@@ -283,6 +359,8 @@ if __name__ == "__main__":
     bot_name = "Lyla"
     context = None
     current_user = None
+    viewed_product_ids = set()
+    cart_product_ids = []
 
     print(
         "Hello! I am Lyla from CoffeeMugs. What do you need? "
@@ -306,6 +384,28 @@ if __name__ == "__main__":
             tag, prob = "cancel_order", 1.0
         elif is_create_order_request(sentence):
             tag, prob = "create_order", 1.0
+        elif is_recommendation_request(sentence):
+            show_recommendations_cli(sentence, viewed_product_ids, cart_product_ids)
+            continue
+        elif is_market_basket_request(sentence):
+            show_market_basket_cli()
+            continue
+        elif is_product_popularity_request(sentence):
+            show_product_popularity_cli()
+            continue
+        elif is_category_prediction_request(sentence):
+            show_category_prediction_cli(sentence)
+            continue
         else:
             tag, prob = engine.predict(sentence)
-        current_user = get_response(tag, prob, engine, bot_name, current_user, context)
+        current_user = get_response(
+            sentence,
+            tag,
+            prob,
+            engine,
+            bot_name,
+            current_user,
+            context,
+            viewed_product_ids,
+            cart_product_ids,
+        )

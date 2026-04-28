@@ -8,6 +8,10 @@ The project includes both a Tkinter GUI and a command-line chat interface.
 
 - Intent classification with PyTorch
 - Product catalog lookup from `products.csv`
+- Content-based product recommendations using product attributes, browsing context, and cart/order context
+- Product popularity analysis from saved database orders
+- Simple market basket analysis for frequently bought product pairs from saved database orders
+- Product category prediction using a small Naive Bayes ML model trained from `products.csv`
 - Order tracking and management through SQL Server
 - CSV seeding from `orders.csv`
 - GUI chat app with admin login support
@@ -87,6 +91,33 @@ python3 chat.py
 
 Type `quit`, `exit`, or `bye` to leave the CLI chat.
 
+Recommendation examples:
+
+```text
+Recommend similar products
+Recommend something like P001
+Suggest products for my cart
+Show me personalized recommendations
+```
+
+Analytics examples:
+
+```text
+Show product popularity
+What are the top selling products?
+Market basket analysis
+Which products are frequently bought together?
+```
+
+Product category prediction examples:
+
+```text
+Predict category for P001
+What category is P004?
+Predict category for insulated travel mug
+Classify product Classic Red Mug
+```
+
 ## Test Responses
 
 Run the response test script:
@@ -97,20 +128,37 @@ python3 generate_response.py
 
 The script checks sample queries from `intents.json` and asks you to mark each generated response as correct or wrong.
 
-## Important Files
+## Evaluation And Experimentation
 
-- `app.py` - Tkinter GUI chatbot
-- `chat.py` - command-line chatbot
-- `train.py` - trains the intent classification model
-- `generate_response.py` - manual response evaluation script
-- `model.py` - PyTorch neural network
-- `nltk_utils.py` - tokenization, lemmatization, and bag-of-words helpers
+Run the automated evaluation script:
+
+```bash
+python evaluation.py
+```
+
+It reports:
+
+- Chatbot intent accuracy and average prediction time
+- Recommendation quality with Precision@3, hit rate, and mean reciprocal rank
+- A comparison between chatbot behavior with and without the recommendation module
+- User satisfaction survey averages from `evaluation_survey.csv`
+- Product category prediction accuracy
+
+## Project Structure
+
+- `app.py` - Tkinter GUI entry point
+- `chat.py` - command-line chatbot entry point
+- `chatbot_engine.py` - intent model loading, prediction, and request routing helpers
+- `chatbot_features.py` - shared chatbot feature responses for recommendations, analytics, and category prediction
+- `product_catalog.py` - product CSV loading, formatting, and recommendation ranking
+- `analytics.py` - product popularity and market basket analysis
+- `category_predictor.py` - Naive Bayes product category prediction
 - `db.py` - SQL Server setup and order/user database functions
-- `product_catalog.py` - product CSV loading and formatting
-- `intents.json` - training phrases and chatbot responses
-- `data.pth` - trained model data
-- `orders.csv` - seed order records
-- `products.csv` - product catalog
+- `model.py`, `nltk_utils.py`, `train.py` - PyTorch intent-classification training pipeline
+- `evaluation.py`, `evaluation_survey.csv` - automated evaluation and survey metrics
+- `generate_response.py`, `intent_response.py` - manual testing utilities
+- `intents.json`, `data.pth` - chatbot intent data and trained model
+- `products.csv`, `orders.csv` - product catalog and seed order records
 
 ## Typical Workflow
 
