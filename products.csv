@@ -1,16 +1,61 @@
 product_id,name,category,color,size,material,price,stock,description
-P001,Classic Red Mug,Coffee Mug,Red,350ml,Ceramic,12.99,25,Durable everyday ceramic mug in red
-P002,Classic White Mug,Coffee Mug,White,350ml,Ceramic,11.99,40,Minimal white ceramic mug for coffee or tea
-P003,Classic Blue Mug,Coffee Mug,Blue,350ml,Ceramic,12.99,30,Blue ceramic mug with dishwasher-safe finish
-P004,Large Travel Mug,Travel Mug,Black,500ml,Stainless Steel,18.99,15,Insulated travel mug for hot drinks
-P005,Gift Mug Set,Gift Set,Mixed,3 x 350ml,Ceramic,34.99,10,Three-piece mug gift set with red white and blue mugs
-P006,Matte Black Mug,Coffee Mug,Black,400ml,Ceramic,14.99,22,Modern matte ceramic mug for coffee and tea
-P007,Pastel Pink Mug,Coffee Mug,Pink,300ml,Ceramic,13.49,18,Small pastel ceramic mug with smooth finish
-P008,Speckled Stoneware Mug,Coffee Mug,Grey,450ml,Stoneware,16.99,14,Handcrafted stoneware mug with speckled glaze
-P009,Glass Latte Mug,Latte Mug,Clear,300ml,Glass,10.99,35,Transparent glass mug for latte cappuccino and tea
-P010,Double Wall Espresso Cup,Espresso Cup,Clear,100ml,Glass,9.99,28,Double wall glass espresso cup for hot drinks
-P011,Compact Travel Tumbler,Travel Mug,Silver,350ml,Stainless Steel,16.99,20,Compact insulated stainless steel travel tumbler
-P012,Premium Thermal Travel Mug,Travel Mug,Navy,600ml,Stainless Steel,22.99,12,Large thermal travel mug with leak resistant lid
-P013,Bamboo Lid Mug,Eco Mug,White,380ml,Ceramic,15.99,16,Ceramic eco mug with reusable bamboo lid
-P014,Reusable Wheat Straw Cup,Eco Mug,Beige,420ml,Wheat Straw,8.99,45,Lightweight reusable eco cup made from wheat straw
-P015,Holiday Gift Mug Set,Gift Set,Mixed,4 x 300ml,Ceramic,42.99,8,Four-piece holiday ceramic mug gift set
+P001,Classic Red Mug,Coffee Mug,Red,350ml,Ceramic,12.99,48,Durable everyday ceramic mug in red
+P002,Classic White Mug,Coffee Mug,White,350ml,Ceramic,11.99,62,Minimal white ceramic mug for coffee or tea
+P003,Classic Blue Mug,Coffee Mug,Blue,350ml,Ceramic,12.99,55,Blue ceramic mug with dishwasher-safe finish
+P004,Large Travel Mug,Travel Mug,Black,500ml,Stainless Steel,18.99,35,Insulated travel mug for hot drinks
+P005,Gift Mug Set,Gift Set,Mixed,3 x 350ml,Ceramic,34.99,28,Three-piece mug gift set with red white and blue mugs
+P006,Matte Black Mug,Coffee Mug,Black,400ml,Ceramic,14.99,41,Modern matte ceramic mug for coffee and tea
+P007,Pastel Pink Mug,Coffee Mug,Pink,300ml,Ceramic,13.49,34,Small pastel ceramic mug with smooth finish
+P008,Office Grey Mug,Coffee Mug,Grey,350ml,Ceramic,10.99,57,Neutral office mug for daily use
+P009,Glass Latte Mug,Latte Mug,Clear,450ml,Glass,15.99,27,Clear glass mug for latte and layered coffee
+P010,Espresso Cup Pair,Espresso Cup,White,2 x 90ml,Porcelain,16.99,30,Pair of porcelain espresso cups
+P011,Thermal Steel Mug,Travel Mug,Silver,480ml,Stainless Steel,19.99,32,Thermal steel mug with spill-resistant lid
+P012,Commuter Mug,Travel Mug,Navy,520ml,Stainless Steel,21.99,26,Large commuter mug for hot drinks on the go
+P013,Eco Bamboo Mug,Eco Mug,Beige,400ml,Bamboo Fiber,17.49,24,Reusable bamboo fiber mug with eco-friendly material
+P014,Reusable Glass Cup,Eco Mug,Clear,360ml,Glass,14.49,38,Reusable glass cup for hot and cold drinks
+P015,Holiday Gift Mug Set,Gift Set,Mixed,4 x 300ml,Ceramic,39.99,18,Seasonal gift set with four decorated mugs
+P016,Minimal Cream Mug,Coffee Mug,Cream,350ml,Ceramic,12.49,44,Simple cream ceramic mug for home use
+P017,Forest Green Mug,Coffee Mug,Green,380ml,Ceramic,13.99,36,Green ceramic mug inspired by outdoor colors
+P018,Speckled Stone Mug,Coffee Mug,Stone,400ml,Stoneware,15.49,29,Speckled stoneware mug with handmade style finish
+P019,Copper Travel Tumbler,Travel Mug,Copper,500ml,Stainless Steel,22.49,21,Metallic insulated tumbler for commuting
+P020,Kids Small Mug,Coffee Mug,Yellow,250ml,Ceramic,9.99,40,Small bright mug suitable for children
+P021,Double Wall Glass Mug,Latte Mug,Clear,320ml,Glass,18.49,25,Double wall glass mug that keeps drinks warm
+P022,Corporate Logo Mug,Custom Mug,White,350ml,Ceramic,13.99,50,White ceramic mug suitable for custom logo printing
+P023,Photo Print Mug,Custom Mug,White,350ml,Ceramic,15.99,46,Personalized mug for photo printing
+P024,Name Engraved Mug,Custom Mug,Black,400ml,Ceramic,16.49,31,Custom mug with name engraving option
+P025,Premium Porcelain Mug,Coffee Mug,White,360ml,Porcelain,18.99,33,Premium porcelain mug for formal settings
+P026,Stackable Espresso Set,Espresso Cup,Mixed,6 x 80ml,Porcelain,29.99,19,Stackable espresso cups for kitchen storage
+P027,Camping Enamel Mug,Outdoor Mug,Blue,420ml,Enamel,12.49,37,Lightweight enamel mug for camping
+P028,Mountain Enamel Mug,Outdoor Mug,Green,420ml,Enamel,12.99,35,Outdoor enamel mug with mountain design
+P029,Smart Temperature Mug,Smart Mug,Black,400ml,Stainless Steel,54.99,12,Smart mug with temperature control
+P030,Heated Desk Mug,Smart Mug,Grey,380ml,Stainless Steel,49.99,14,Desk mug with heating base compatibility
+P031,Floral Gift Mug,Gift Set,Pink,350ml,Ceramic,19.99,23,Gift-ready floral ceramic mug
+P032,Birthday Mug Box,Gift Set,Mixed,2 x 350ml,Ceramic,27.99,20,Birthday themed mug gift box
+P033,Large Soup Mug,Soup Mug,Red,600ml,Ceramic,16.99,26,Large handled mug suitable for soup
+P034,Breakfast Bowl Mug,Soup Mug,White,650ml,Ceramic,17.49,24,Wide mug for breakfast or soup
+P035,Reusable Coffee Cup,Eco Mug,Green,360ml,Recycled Plastic,11.99,52,Lightweight reusable coffee cup
+P036,Cork Grip Eco Cup,Eco Mug,Brown,380ml,Bamboo Fiber,16.49,30,Eco cup with cork grip sleeve
+P037,Luxury Gold Mug,Coffee Mug,Gold,330ml,Porcelain,24.99,16,Gold accented porcelain mug
+P038,Marble Ceramic Mug,Coffee Mug,White,380ml,Ceramic,17.99,28,Marble pattern ceramic mug
+P039,Tall Latte Glass,Latte Mug,Clear,500ml,Glass,16.99,29,Tall glass mug for latte and iced coffee
+P040,Reusable Straw Cup,Eco Mug,Clear,600ml,Glass,18.49,22,Glass cup with reusable straw and lid
+P041,Mini Espresso Cup,Espresso Cup,Black,70ml,Porcelain,8.99,43,Small black espresso cup
+P042,Color Espresso Set,Espresso Cup,Mixed,4 x 90ml,Porcelain,24.49,21,Colorful espresso cup set
+P043,Slim Travel Cup,Travel Mug,White,450ml,Stainless Steel,20.49,27,Slim insulated travel cup
+P044,Grip Travel Mug,Travel Mug,Red,520ml,Stainless Steel,23.99,18,Large travel mug with grip texture
+P045,Student Budget Mug,Coffee Mug,Blue,320ml,Ceramic,7.99,70,Affordable ceramic mug for students
+P046,Teacher Gift Mug,Gift Set,White,350ml,Ceramic,18.99,26,Gift mug for teachers with message print
+P047,Office Starter Pack,Gift Set,Mixed,6 x 350ml,Ceramic,59.99,11,Bulk office mug starter pack
+P048,Cafe Style Cappuccino Cup,Latte Mug,White,280ml,Porcelain,13.99,34,Cafe style cup for cappuccino
+P049,Insulated Camping Mug,Outdoor Mug,Black,450ml,Stainless Steel,17.49,25,Insulated outdoor mug for camping
+P050,Adventure Enamel Set,Outdoor Mug,Mixed,4 x 420ml,Enamel,36.99,17,Outdoor enamel mug set for groups
+P051,Ceramic Tea Mug,Tea Mug,Green,450ml,Ceramic,14.99,32,Large ceramic mug for tea
+P052,Infuser Tea Mug,Tea Mug,White,420ml,Ceramic,19.49,20,Tea mug with removable infuser
+P053,Glass Tea Cup,Tea Mug,Clear,350ml,Glass,13.49,36,Clear glass cup for tea
+P054,Personalized Couple Mug Set,Custom Mug,Mixed,2 x 350ml,Ceramic,31.99,18,Personalized couple mug set
+P055,Photo Travel Mug,Custom Mug,Silver,470ml,Stainless Steel,27.99,15,Travel mug with photo customization
+P056,Smart App Mug,Smart Mug,Silver,410ml,Stainless Steel,64.99,10,Smart mug controlled by mobile app
+P057,Minimal Black Espresso Pair,Espresso Cup,Black,2 x 90ml,Porcelain,18.49,24,Pair of minimalist black espresso cups
+P058,Rustic Stoneware Mug,Coffee Mug,Brown,420ml,Stoneware,16.99,27,Rustic stoneware mug with warm finish
+P059,Large Office Mug,Coffee Mug,Navy,500ml,Ceramic,15.99,39,Large ceramic mug for long work sessions
+P060,Compact Travel Cup,Travel Mug,Grey,350ml,Stainless Steel,16.49,33,Compact travel cup for small bags

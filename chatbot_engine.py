@@ -101,6 +101,10 @@ def is_market_basket_request(user_input):
 def is_category_prediction_request(user_input):
     normalized = user_input.lower()
     category_words = {
+        "predit category",
+        "predit",
+        "predcit category",
+        "predict catagory",
         "predict category",
         "category prediction",
         "what category",

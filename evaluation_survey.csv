@@ -1,6 +1,31 @@
 respondent_id,chatbot_accuracy,rating_recommendations,rating_speed,rating_overall,comments
-S001,5,4,5,5,Responses were clear and recommendations were useful
-S002,4,4,5,4,Product suggestions were relevant
-S003,4,5,4,4,Analytics answers were easy to understand
-S004,5,4,4,5,Order and product features worked well
-S005,4,3,5,4,Recommendation feature could include more products
+S001,5,3,4,5,Order and product features worked well
+S002,4,4,5,5,Market basket results helped explain related products
+S003,5,4,5,5,Product suggestions were relevant
+S004,4,4,4,5,Order and product features worked well
+S005,4,4,5,4,Recommendation feature could include more products
+S006,4,3,5,4,Order and product features worked well
+S007,3,5,4,5,Responses were clear and recommendations were useful
+S008,4,4,5,4,Responses were clear and recommendations were useful
+S009,5,5,4,4,The product category prediction was understandable
+S010,5,4,4,5,Order and product features worked well
+S011,5,5,3,5,Responses were clear and recommendations were useful
+S012,3,4,5,4,Order and product features worked well
+S013,5,3,5,5,Order and product features worked well
+S014,5,5,5,5,The product category prediction was understandable
+S015,5,5,4,5,Product suggestions were relevant
+S016,4,5,5,5,The product category prediction was understandable
+S017,4,4,5,5,The chatbot was fast and easy to use
+S018,5,4,4,5,Recommendation feature could include more products
+S019,4,5,3,5,The chatbot was fast and easy to use
+S020,5,3,5,5,Recommendation feature could include more products
+S021,4,5,5,4,Analytics answers were easy to understand
+S022,5,5,4,5,Market basket results helped explain related products
+S023,3,3,4,5,Recommendation feature could include more products
+S024,5,5,5,5,Recommendation feature could include more products
+S025,4,4,5,4,Product suggestions were relevant
+S026,4,3,5,5,Responses were clear and recommendations were useful
+S027,4,5,5,4,Order and product features worked well
+S028,4,4,5,5,The product category prediction was understandable
+S029,4,3,4,4,Product suggestions were relevant
+S030,4,4,5,5,Responses were clear and recommendations were useful

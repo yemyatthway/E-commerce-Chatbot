@@ -141,11 +141,14 @@ def market_basket_analysis(
         product_names[product_id] = row.get("product_name") or product_id
 
     pair_counter = Counter()
+    item_counter = Counter()
     basket_count = 0
     for basket in baskets.values():
         if len(basket) < 2:
             continue
         basket_count += 1
+        for product_id in basket:
+            item_counter[product_id] += 1
         for pair in combinations(sorted(basket), 2):
             pair_counter[pair] += 1
 
@@ -153,13 +156,24 @@ def market_basket_analysis(
     for pair, support_count in pair_counter.most_common():
         if support_count < min_support:
             continue
+        left, right = pair
         support = support_count / max(basket_count, 1)
+        left_support = item_counter[left] / max(basket_count, 1)
+        right_support = item_counter[right] / max(basket_count, 1)
+        confidence_left_to_right = support_count / max(item_counter[left], 1)
+        confidence_right_to_left = support_count / max(item_counter[right], 1)
+        lift_left_to_right = confidence_left_to_right / max(right_support, 0.000001)
+        lift_right_to_left = confidence_right_to_left / max(left_support, 0.000001)
         results.append(
             {
                 "pair": pair,
                 "names": tuple(product_names[product_id] for product_id in pair),
                 "support_count": support_count,
                 "support": support,
+                "confidence_left_to_right": confidence_left_to_right,
+                "confidence_right_to_left": confidence_right_to_left,
+                "lift_left_to_right": lift_left_to_right,
+                "lift_right_to_left": lift_right_to_left,
             }
         )
         if len(results) >= limit:
@@ -179,6 +193,8 @@ def format_market_basket_analysis(rows):
         lines.append(
             f"- {left} ({left_name}) + {right} ({right_name}) | "
             f"Support count: {row['support_count']} | "
-            f"Support: {row['support']:.0%}"
+            f"Support: {row['support']:.0%} | "
+            f"Confidence {left}->{right}: {row['confidence_left_to_right']:.0%} | "
+            f"Lift: {row['lift_left_to_right']:.2f}"
         )
     return "\n".join(lines)

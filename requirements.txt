@@ -4,3 +4,4 @@ nltk
 numpy
 pandas
 matplotlib
+scikit-learn
